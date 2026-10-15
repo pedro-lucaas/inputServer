@@ -1,0 +1,24 @@
+name: Lifecycle regression tests
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [windows-2022, macos-14]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.6.3'
+      - name: Configure isolated single-instance tests
+        run: cmake -S tests/lifecycle -B lifecycle-build
+      - name: Build
+        run: cmake --build lifecycle-build --config Release
+      - name: Test
+        run: ctest --test-dir lifecycle-build -C Release --output-on-failure
