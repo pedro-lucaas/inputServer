@@ -29,6 +29,8 @@ FingerprintAcceptDialog::FingerprintAcceptDialog(QWidget *parent,
     ui_->setupUi(this);
 
     if (type == AppRole::Server) {
+        setWindowTitle(tr("New client connection"));
+        ui_->label_title->setText(tr("Allow this client to connect?"));
         ui_->label_sha1->hide();
         ui_->label_sha1_fingerprint_full->hide();
     } else {
@@ -48,8 +50,9 @@ FingerprintAcceptDialog::FingerprintAcceptDialog(QWidget *parent,
                          "two don't match exactly, then it's probably not the client "
                          "you're expecting (it could be a malicious user).\n\n"
                          "To automatically trust this fingerprint for future "
-                         "connections, click Yes. To reject this fingerprint and "
-                         "disconnect the client, click No.");
+                         "connections and add this computer to the server automatically, click Yes. "
+                         "Its screen will be placed to the right when space is available; "
+                         "you can change its position later. To reject the client, click No.");
     } else {
         explanation = tr("This is a server fingerprint. You should compare this "
                          "fingerprint to the one on your server's screen. If the "

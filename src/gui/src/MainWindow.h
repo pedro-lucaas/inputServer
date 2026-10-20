@@ -154,8 +154,11 @@ public slots:
         void initModernView();
         void updateRoleView();
         void updateClientForm();
+        bool chooseServer();
         void checkConnected(const QString& line);
         void checkFingerprint(const QString& line);
+        void registerTrustedClient(const QString& line);
+        void appendEngineLog(QByteArray& pending, const QByteArray& data);
         void restart_cmd_app();
         void proofreadInfo();
         void windowStateChanged();
@@ -166,6 +169,8 @@ public slots:
         QSettings& m_Settings;
         AppConfig* m_AppConfig;
         QProcess* cmd_app_process_;
+        QByteArray stdout_pending_;
+        QByteArray stderr_pending_;
         AppConnectionState connection_state_ = AppConnectionState::DISCONNECTED;
         ServerConfig m_ServerConfig;
         QTemporaryFile* m_pTempConfigFile;
@@ -178,7 +183,8 @@ public slots:
         QMenu* m_pMenuHelp;
         std::unique_ptr<UdpDiscovery> discovery_;
         QSet<QString> discovered_clients_;
-        bool waiting_for_server_ = false;
+        QSet<QString> rejected_client_fingerprints_;
+        QSet<QString> pending_registrations_;
         bool m_SuppressEmptyServerWarning;
         qRuningState m_ExpectedRunningState;
         QMutex m_StopDesktopMutex;
@@ -192,7 +198,6 @@ public slots:
 
 private slots:
     void on_m_pCheckBoxAutoConfig_toggled(bool checked);
-    void comboServerList_currentIndexChanged(QString );
     void on_m_pButtonReload_clicked();
 
 };

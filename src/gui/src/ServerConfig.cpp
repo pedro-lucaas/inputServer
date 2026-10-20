@@ -299,6 +299,44 @@ int ServerConfig::numScreens() const
     return rval;
 }
 
+bool ServerConfig::addTrustedClient(const QString& name)
+{
+    static const QRegularExpression validName(
+        QStringLiteral("^[A-Za-z0-9_](?:[A-Za-z0-9_.-]{0,253}[A-Za-z0-9_.])?$"));
+    if (!validName.match(name).hasMatch() || name.contains("..")) return false;
+    int index = -1;
+    if (findScreenName(name, index)) return false;
+    int serverIndex = -1;
+    if (!findScreenName(m_ServerName, serverIndex) && !fixNoServer(m_ServerName, serverIndex)) {
+        return false;
+    }
+    // Prefer the right-hand chain. Every new screen must touch an existing
+    // screen, so the pointer can reach it without manual layout edits.
+    int current = serverIndex;
+    for (;;) {
+        const int right = adjacentScreenIndex(current, 1, 0);
+        if (right == -1) break;
+        if (m_Screens[right].isNull()) {
+            m_Screens[right].setName(name);
+            saveSettings();
+            return true;
+        }
+        current = right;
+    }
+    for (int i = 0; i < static_cast<int>(m_Screens.size()); ++i) {
+        if (m_Screens[i].isNull()) continue;
+        for (const auto& direction : neighbourDirs) {
+            const int next = adjacentScreenIndex(i, direction.x, direction.y);
+            if (next != -1 && m_Screens[next].isNull()) {
+                m_Screens[next].setName(name);
+                saveSettings();
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 int ServerConfig::autoAddScreen(const QString name)
 {
     int serverIndex = -1;

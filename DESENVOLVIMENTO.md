@@ -35,6 +35,14 @@ Job Object encerra o motor se a interface for finalizada à força.
   firewall. A descoberta não é autenticada; quem garante a identidade do
   servidor é a verificação da impressão digital TLS ao conectar.
 
+## Aprovação e cadastro de clientes
+
+O servidor da interface exige certificado de cliente em conexões TLS. Um certificado desconhecido gera a pergunta de confiança; rejeitar mantém o cliente bloqueado e suprime novas perguntas para o mesmo certificado durante a sessão. Depois da aprovação, o cliente tenta conectar novamente.
+
+Quando um cliente autenticado ainda não tem tela na configuração, o motor emite um registro com nome em hexadecimal e SHA256 do certificado efetivamente autenticado. A interface confere novamente a impressão digital no banco de clientes confiáveis, cadastra a tela numa célula adjacente livre, salva e reinicia o motor. Não há cadastro baseado em anúncios UDP ou em conexões sem autenticação. Configurações externas são mantidas manualmente.
+
+A aprovação é persistida pelo certificado; mudar o certificado exige nova aprovação. Clientes existentes não são duplicados nem movidos. Os testes locais cobrem persistência, duplicação, nomes inválidos, grade cheia e o formato do registro. A conexão completa com um servidor Windows atualizado ainda precisa ser validada em Windows.
+
 ## Dados e configurações
 
 | | Windows | macOS |

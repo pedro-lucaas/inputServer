@@ -25,6 +25,9 @@
 #include "ServerConfigDialog.h"
 #include "SettingsDialog.h"
 #include "UdpDiscovery.h"
+#include "ServerBrowserDialog.h"
+#include "TrustedClientRequest.h"
+#include <QSignalBlocker>
 #include "Theme.h"
 #include "FingerprintAcceptDialog.h"
 #include "QUtility.h"
@@ -329,7 +332,6 @@ void MainWindow::loadSettings()
 void MainWindow::initConnections()
 {
     connect(ui_->m_pActionMinimize, &QAction::triggered, this, &MainWindow::hide);
-    connect(ui_->m_pComboServerList, &QComboBox::currentTextChanged, this, &MainWindow::comboServerList_currentIndexChanged);
     connect(ui_->m_pActionRestore, &QAction::triggered, this, &MainWindow::showNormal);
     connect(ui_->m_pActionStartCmdApp, &QAction::triggered, this, &MainWindow::start_cmd_app);
     connect(ui_->m_pActionStopCmdApp, &QAction::triggered, this, &MainWindow::stop_cmd_app);
@@ -381,26 +383,34 @@ void MainWindow::trayActivated(QSystemTrayIcon::ActivationReason reason)
     }
 }
 
+void MainWindow::appendEngineLog(QByteArray& pending, const QByteArray& data)
+{
+    pending += data;
+    int end;
+    while ((end = pending.indexOf('\n')) >= 0) {
+        const auto line = pending.left(end);
+        pending.remove(0, end + 1);
+        appendLogRaw(QString::fromUtf8(line));
+    }
+    // Bound memory if an engine ever writes an unterminated line.
+    if (pending.size() > 65536) {
+        const auto line = pending;
+        pending.clear();
+        appendLogRaw(QString::fromUtf8(line));
+    }
+}
+
 void MainWindow::logOutput()
 {
-    if (cmd_app_process_)
-    {
-        QString text(cmd_app_process_->readAllStandardOutput());
-        const auto results = text.split(QRegularExpression("\r|\n|\r\n"));
-        for (const auto& line : results) {
-            if (!line.isEmpty())
-            {
-                appendLogRaw(line);
-            }
-        }
+    if (cmd_app_process_) {
+        appendEngineLog(stdout_pending_, cmd_app_process_->readAllStandardOutput());
     }
 }
 
 void MainWindow::logError()
 {
-    if (cmd_app_process_)
-    {
-        appendLogRaw(cmd_app_process_->readAllStandardError());
+    if (cmd_app_process_) {
+        appendEngineLog(stderr_pending_, cmd_app_process_->readAllStandardError());
     }
 }
 
@@ -437,6 +447,7 @@ void MainWindow::updateFromLogLine(const QString &line)
     // TODO: this code makes Andrew cry
     checkConnected(line);
     checkFingerprint(line);
+    registerTrustedClient(line);
 }
 
 void MainWindow::checkConnected(const QString& line)
@@ -479,6 +490,9 @@ void MainWindow::checkFingerprint(const QString& line)
     };
 
     bool is_client = app_role() == AppRole::Client;
+    const QString fingerprintKey = QString::fromStdString(inputleap::format_ssl_fingerprint(fingerprint_sha256.data));
+    if (!is_client && rejected_client_fingerprints_.contains(fingerprintKey)) return;
+
 
     auto db_path = is_client
             ? inputleap::DataDirectories::trusted_servers_ssl_fingerprints_path()
@@ -514,10 +528,42 @@ void MainWindow::checkFingerprint(const QString& line)
             if (is_client) {
                 start_cmd_app();
             }
+        } else if (!is_client) {
+            rejected_client_fingerprints_.insert(fingerprintKey);
         }
 
         messageBoxAlreadyShown = false;
     }
+}
+
+void MainWindow::registerTrustedClient(const QString& line)
+{
+    if (app_role() != AppRole::Server || !appConfig().getCryptoEnabled()) return;
+    const auto request = parseTrustedClientRequest(line);
+    if (!request || pending_registrations_.contains(request->name)) return;
+    const QString name = request->name;
+    inputleap::FingerprintDatabase db;
+    db.read(inputleap::DataDirectories::trusted_clients_ssl_fingerprints_path());
+    const inputleap::FingerprintData fingerprint{
+        inputleap::fingerprint_type_to_string(inputleap::FingerprintType::SHA256),
+        std::vector<std::uint8_t>(request->fingerprint.begin(), request->fingerprint.end())};
+    if (!db.is_trusted(fingerprint)) return;
+    pending_registrations_.insert(name);
+    // Avoid restarting/deleting the engine inside its readyRead callback.
+    QTimer::singleShot(0, this, [this, name] {
+        pending_registrations_.remove(name);
+        if (app_role() != AppRole::Server || m_ExpectedRunningState != kStarted) return;
+        if (!ui_->m_pRadioInternalConfig->isChecked()) {
+            appendLogError(tr("Cannot add %1 automatically while using an external configuration file.").arg(name));
+            return;
+        }
+        if (m_ServerConfig.addTrustedClient(name)) {
+            appendLogInfo(tr("Trusted client added automatically: %1").arg(name));
+            restart_cmd_app();
+        } else {
+            appendLogError(tr("Could not add %1 automatically. Check the server screen layout.").arg(name));
+        }
+    });
 }
 
 void MainWindow::restart_cmd_app()
@@ -535,7 +581,6 @@ void MainWindow::proofreadInfo()
 
 void MainWindow::start_cmd_app()
 {
-    waiting_for_server_ = false;
     // Repeated Start signals must never replace the owned process pointer.
     if (cmd_app_process_ && cmd_app_process_->state() != QProcess::NotRunning) {
         return;
@@ -543,6 +588,10 @@ void MainWindow::start_cmd_app()
     if (appConfig().processMode() == Service &&
         m_ExpectedRunningState == kStarted &&
         connection_state() != AppConnectionState::DISCONNECTED) {
+        return;
+    }
+    if (app_role() == AppRole::Client && ui_->m_pCheckBoxAutoConfig->isChecked()
+        && ui_->m_pComboServerList->currentIndex() < 0 && !chooseServer()) {
         return;
     }
     restartTimer_.stop();
@@ -567,6 +616,8 @@ void MainWindow::start_cmd_app()
 
     if (desktopMode)
     {
+        stdout_pending_.clear();
+        stderr_pending_.clear();
         cmd_app_process_ = new QProcess(this);
     }
     else
@@ -695,23 +746,16 @@ bool MainWindow::clientArgs(QStringList& args, QString& app)
                             appConfig().logFilenameCmd() : appConfig().logFilename());
     }
 
-    // check auto config first, if it is disabled or no server detected,
-    // use line edit host name if it is not empty
+    // Automatic discovery requires an explicit choice from the server browser.
     if (ui_->m_pCheckBoxAutoConfig->isChecked()) {
-        if (ui_->m_pComboServerList->count() != 0) {
-            // item data is {address, port} as announced by the server
+        if (ui_->m_pComboServerList->currentIndex() >= 0) {
             const QStringList server = ui_->m_pComboServerList->currentData().toStringList();
             if (server.size() == 2) {
                 args << "[" + server[0] + "]:" + server[1];
                 return true;
             }
         }
-        if (ui_->m_pLineEditHostname->text().isEmpty()) {
-            // Not an error: the client starts as soon as a server answers.
-            appendLogInfo(tr("waiting for a server on the network"));
-            waiting_for_server_ = true;
-            return false;
-        }
+        return false;
     } else if (ui_->m_pLineEditHostname->text().isEmpty()) {
         show();
         if (!m_SuppressEmptyServerWarning) {
@@ -812,10 +856,6 @@ bool MainWindow::serverArgs(QStringList& args, QString& app)
 
         args << "--log" << (appConfig().processMode() == Service ?
                             appConfig().logFilenameCmd() : appConfig().logFilename());
-    }
-
-    if (!appConfig().getRequireClientCertificate()) {
-        args << "--disable-client-cert-checking";
     }
 
     QString configFilename = this->configFilename();
@@ -981,6 +1021,7 @@ void MainWindow::set_connection_state(AppConnectionState state)
     set_icon(state);
 
     connection_state_ = state;
+    updateClientForm();
 }
 
 void MainWindow::setVisible(bool visible)
@@ -1095,8 +1136,8 @@ bool MainWindow::event(QEvent* event)
 void MainWindow::updateDiscovery()
 {
     discovery_.reset();
-    waiting_for_server_ = false;
     discovered_clients_.clear();
+    const QSignalBlocker blocker(ui_->m_pComboServerList);
     ui_->m_pComboServerList->clear();
     updateClientForm();
 
@@ -1132,29 +1173,31 @@ void MainWindow::serverDetected(const QString& name, const QHostAddress& address
     if (existing != -1) {
         ui_->m_pComboServerList->setItemData(existing, server);
         ui_->m_pComboServerList->setItemText(existing, label);
+        updateClientForm();
         return;
     }
 
     appendLogInfo(tr("server found on the network: %1").arg(label));
-    // Note: the first added item triggers a (re)start of the client
+    const QSignalBlocker blocker(ui_->m_pComboServerList);
+    const int previous = ui_->m_pComboServerList->currentIndex();
     ui_->m_pComboServerList->addItem(label, server);
     ui_->m_pComboServerList->setItemData(ui_->m_pComboServerList->count() - 1, name, kNameRole);
+    ui_->m_pComboServerList->setCurrentIndex(previous);
 
     updateClientForm();
 }
 
-void MainWindow::serverLost(const QString& name, const QHostAddress& address)
+void MainWindow::serverLost(const QString& name, const QHostAddress&)
 {
-    const QString label = QStringLiteral("%1 (%2)").arg(name, address.toString());
-    const int index = ui_->m_pComboServerList->findText(label);
-    if (index == -1) {
-        return;
-    }
-
-    appendLogInfo(tr("server no longer answering: %1").arg(label));
-    // Keep the server being used: a missed reply must not drop the connection.
-    if (index != ui_->m_pComboServerList->currentIndex()) {
+    const int index = ui_->m_pComboServerList->findData(name, Qt::UserRole + 1);
+    if (index == -1) return;
+    appendLogInfo(tr("server no longer answering: %1").arg(name));
+    if (connection_state() == AppConnectionState::DISCONNECTED ||
+        index != ui_->m_pComboServerList->currentIndex()) {
+        const QSignalBlocker blocker(ui_->m_pComboServerList);
+        const bool selected = index == ui_->m_pComboServerList->currentIndex();
         ui_->m_pComboServerList->removeItem(index);
+        if (selected) ui_->m_pComboServerList->setCurrentIndex(-1);
     }
     updateClientForm();
 }
@@ -1167,7 +1210,7 @@ void MainWindow::clientDetected(const QString& name)
     }
     discovered_clients_.insert(name);
     appendLogInfo(tr("client found on the network: %1").arg(name));
-    autoAddScreen(name);
+    // Discovery is unauthenticated; enrollment happens only after TLS approval.
 }
 
 void MainWindow::initModernView()
@@ -1195,6 +1238,10 @@ void MainWindow::initModernView()
     ui_->m_pButtonToggleStart->setProperty("running", false);
     theme::repolish(ui_->centralwidget);
 
+    connect(ui_->buttonChooseServer, &QPushButton::clicked, this, [this] { chooseServer(); });
+    connect(ui_->m_pCheckBoxAutoConfig, &QCheckBox::clicked, this, [this](bool checked) {
+        if (checked) chooseServer();
+    });
     updateRoleView();
     updateClientForm();
 }
@@ -1211,11 +1258,40 @@ void MainWindow::updateRoleView()
 void MainWindow::updateClientForm()
 {
     const bool automatic = ui_->m_pCheckBoxAutoConfig->isChecked();
-    const bool found = ui_->m_pComboServerList->count() > 0;
-    ui_->labelServerFound->setVisible(automatic && found);
-    ui_->m_pComboServerList->setVisible(automatic && found);
+    ui_->m_pCheckBoxAutoConfig->setEnabled(connection_state() == AppConnectionState::DISCONNECTED);
+    ui_->labelServerFound->setVisible(false);
+    ui_->m_pComboServerList->setVisible(false);
+    ui_->buttonChooseServer->setVisible(automatic);
+    ui_->labelSelectedServer->setVisible(automatic);
+    ui_->buttonChooseServer->setEnabled(connection_state() == AppConnectionState::DISCONNECTED);
+    ui_->labelSelectedServer->setText(ui_->m_pComboServerList->currentIndex() >= 0
+        ? ui_->m_pComboServerList->currentText() : tr("No server selected"));
     ui_->m_pLabelServerName->setVisible(!automatic);
     ui_->m_pLineEditHostname->setVisible(!automatic);
+}
+
+bool MainWindow::chooseServer()
+{
+    if (connection_state() != AppConnectionState::DISCONNECTED) return false;
+    ServerBrowserDialog dialog(this);
+    for (int i = 0; i < ui_->m_pComboServerList->count(); ++i) {
+        const auto server = ui_->m_pComboServerList->itemData(i).toStringList();
+        if (server.size() == 2) {
+            dialog.serverFound(ui_->m_pComboServerList->itemData(i, Qt::UserRole + 1).toString(),
+                               QHostAddress(server[0]), server[1].toUShort());
+        }
+    }
+    dialog.selectServer(ui_->m_pComboServerList->currentData(Qt::UserRole + 1).toString());
+    if (discovery_) {
+        connect(discovery_.get(), &UdpDiscovery::serverFound, &dialog, &ServerBrowserDialog::serverFound);
+        connect(discovery_.get(), &UdpDiscovery::serverLost, &dialog, &ServerBrowserDialog::serverLost);
+    }
+    if (dialog.exec() != QDialog::Accepted) return false;
+    const int index = ui_->m_pComboServerList->findData(dialog.selectedName(), Qt::UserRole + 1);
+    if (index < 0) return false;
+    ui_->m_pComboServerList->setCurrentIndex(index);
+    updateClientForm();
+    return true;
 }
 
 void MainWindow::updateSSLFingerprint()
@@ -1369,19 +1445,6 @@ void MainWindow::on_m_pButtonConfigureServer_clicked()
 void MainWindow::on_m_pButtonReload_clicked()
 {
     restart_cmd_app();
-}
-
-void MainWindow::comboServerList_currentIndexChanged(QString )
-{
-    // Only (re)start when the user wants to be connected: either the client
-    // is running or Start was pressed while no server had answered yet.
-    if (ui_->m_pComboServerList->count() == 0) {
-        return;
-    }
-    if (waiting_for_server_ || m_ExpectedRunningState == kStarted) {
-        waiting_for_server_ = false;
-        restart_cmd_app();
-    }
 }
 
 void MainWindow::on_m_pCheckBoxAutoConfig_toggled(bool checked)

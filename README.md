@@ -206,17 +206,17 @@ Se o firewall do macOS estiver ligado (*Ajustes → Rede → Firewall*), permita
 
 ### No servidor (computador com o teclado e o mouse)
 
-1. Abra o InputServer e escolha **Servidor**.
-2. Clique em **Configurar servidor**.
-3. Arraste o ícone de monitor do canto superior direito para a grade e posicione-o ao lado do seu computador, do mesmo jeito que as telas estão na sua mesa (por exemplo, à direita).
-4. Dê dois cliques no novo monitor e digite o **nome do cliente** exatamente como aparece na janela do InputServer no outro computador (campo "Nome da tela").
-5. Clique em **OK** e depois em **Iniciar**.
-6. Anote o **endereço IP** mostrado na janela (por exemplo `192.168.0.10`).
+1. Abra o InputServer, escolha **Servidor** e clique em **Iniciar**.
+2. Anote o **endereço IP** mostrado na janela (por exemplo `192.168.0.10`).
+3. Quando um cliente novo tentar conectar, aparece a pergunta para confiar no certificado dele. Confira a impressão digital na tela do cliente e aceite.
+4. O cliente é cadastrado automaticamente pelo nome que enviou. Sua tela é colocada à direita quando há espaço, ou em outra posição adjacente livre. Use **Configurar servidor** se quiser mudar a posição depois.
+
+Não é necessário copiar nomes nem criar o monitor antes de conectar. O cadastro automático exige TLS com certificado do cliente e a configuração interna do servidor; arquivos de configuração externos continuam sendo administrados manualmente.
 
 ### No cliente (computador a ser controlado)
 
 1. Abra o InputServer e escolha **Cliente**.
-2. Deixe a **descoberta automática** ligada: em poucos segundos o servidor aparece sozinho (por UDP na rede local, sem instalar nada). Se não aparecer, desligue-a e digite o **IP do servidor**.
+2. Ative **Encontrar servidor automaticamente** para abrir a janela de servidores disponíveis. Selecione o servidor pelo nome e IP e confirme; o botão **Escolher servidor** permite trocar a seleção. A lista é atualizada por UDP na rede local. Se nenhum servidor aparecer, cancele, desligue a descoberta e digite o **IP do servidor**.
 3. Clique em **Iniciar**.
 4. Na primeira conexão aparece a **impressão digital do servidor**. Confira se ela é igual à mostrada no servidor (*Editar → Configurações → impressão digital*) e aceite.
 
@@ -255,7 +255,7 @@ O atraso entre mover o mouse e o cursor andar no outro computador deve ser imper
 | Sintoma | Causa provável | Solução |
 |---|---|---|
 | Cliente não conecta | Firewall ou rede "Pública" no servidor | Veja o passo do firewall do [Windows](#5-libere-o-firewall-somente-no-servidor) |
-| Conecta, mas o cursor não passa para o outro lado | Nome da tela diferente na configuração do servidor | O nome no servidor deve ser idêntico ao "Nome da tela" do cliente |
+| Conecta, mas o cursor não passa para o outro lado | Posição das telas ou aprovação pendente | Confirme o certificado do cliente no servidor e confira a posição em **Configurar servidor** |
 | No Mac o cursor não se move / teclas não funcionam | Falta permissão | Ative **Acessibilidade** (e **Monitoramento de Entrada** no servidor) e reabra o app |
 | Pediu de novo para aceitar a impressão digital | Certificado do servidor mudou | Confira se é o mesmo servidor antes de aceitar |
 | Não funciona na tela de login/UAC do Windows | O InputServer roda como usuário comum | Limitação conhecida desta versão |

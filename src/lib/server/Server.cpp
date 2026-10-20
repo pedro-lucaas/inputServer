@@ -34,6 +34,9 @@
 #include "inputleap/Screen.h"
 #include "inputleap/PacketStreamFilter.h"
 #include "net/TCPSocket.h"
+#include "net/SecureSocket.h"
+#include "server/IClientConnection.h"
+#include "base/String.h"
 #include "net/IDataSocket.h"
 #include "net/IListenSocket.h"
 #include "net/XSocket.h"
@@ -274,6 +277,24 @@ Server::adoptClient(BaseClientProxy* client)
 	// watch for client disconnection
     m_events->add_handler(EventType::CLIENT_PROXY_DISCONNECTED, client,
                           [this, client](const auto& e){ handle_client_disconnected(client); });
+
+    // Only a TLS peer whose certificate has already been approved may ask
+    // the GUI to register a screen. Plaintext/discovery never authorizes it.
+    if (!m_config->isScreen(client->getName()) &&
+        m_config->isValidScreenName(client->getName()) && client->getName().size() <= 255) {
+        IStream* stream = client->get_conn().get_stream();
+        while (auto* filter = dynamic_cast<StreamFilter*>(stream)) stream = filter->getStream();
+        if (auto* secure = dynamic_cast<SecureSocket*>(stream)) {
+            const auto fingerprint = secure->trustedClientFingerprint();
+            if (fingerprint.size() == 32) {
+                const auto name = client->getName();
+                const std::vector<std::uint8_t> bytes(name.begin(), name.end());
+                LOG_NOTE("trusted client registration: %s %s",
+                         inputleap::string::to_hex(bytes, 2).c_str(),
+                         inputleap::string::to_hex(fingerprint, 2).c_str());
+            }
+        }
+    }
 
 	// name must be in our configuration
     if (!m_config->isScreen(client->getName())) {

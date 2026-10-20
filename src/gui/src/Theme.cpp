@@ -142,6 +142,12 @@ QLineEdit {
 }
 QLineEdit:focus { border-color: %8; }
 QComboBox { padding: 4px 8px; }
+QListWidget#availableServers {
+    background: %3; border: 1px solid %4; border-radius: 8px; padding: 4px;
+}
+QListWidget#availableServers::item { padding: 10px; border-radius: 6px; }
+QListWidget#availableServers::item:selected { background: %8; color: #ffffff; }
+QListWidget#availableServers::item:hover:!selected { background: %5; }
 QLineEdit:disabled { color: %7; }
 
 QToolButton { background: transparent; border: none; border-radius: 6px; color: %7; padding: 4px 8px; }

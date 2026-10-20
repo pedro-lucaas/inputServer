@@ -43,6 +43,7 @@ set(GUI_SOURCE_FILES
     src/ScreenSetupModel.cpp
     src/ScreenSetupView.cpp
     src/ServerConfig.cpp
+    src/ServerBrowserDialog.cpp
     src/ServerConfigDialog.cpp
     src/SettingsDialog.cpp
     src/SslCertificate.cpp
@@ -75,6 +76,7 @@ set(GUI_HEADER_FILES
     src/ScreenSettingsDialog.h
     src/ScreenSetupModel.h
     src/ScreenSetupView.h
+    src/ServerBrowserDialog.h
     src/ServerConfigDialog.h
     src/ServerConfig.h
     src/SettingsDialog.h
@@ -225,6 +227,22 @@ elseif(WIN32)
 endif()
 
 if(INPUTLEAP_BUILD_TESTS)
+    add_executable(serverbrowser-tests
+        test/ServerBrowserTests.cpp
+        src/ServerBrowserDialog.cpp
+        src/ServerBrowserDialog.h)
+    target_link_libraries(serverbrowser-tests gtest Qt6::Widgets Qt6::Network ${libs})
+    add_test(NAME serverbrowser-tests COMMAND serverbrowser-tests)
+    set_tests_properties(serverbrowser-tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+    add_executable(client-enrollment-tests
+        test/ClientEnrollmentTests.cpp
+        src/ServerConfig.cpp src/Screen.cpp src/AddClientDialog.cpp src/BaseConfig.cpp
+        src/AddClientDialog.h src/AddClientDialog.ui
+        ${GUI_COMMON_SOURCE_FILES})
+    target_include_directories(client-enrollment-tests PRIVATE src)
+    target_link_libraries(client-enrollment-tests gtest Qt6::Widgets Qt6::Network ${libs})
+    add_test(NAME client-enrollment-tests COMMAND client-enrollment-tests)
+    set_tests_properties(client-enrollment-tests PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
     set(GUI_TEST_SOURCE_FILES
         test/KeySequenceTests.cpp
         test/HotkeyTests.cpp

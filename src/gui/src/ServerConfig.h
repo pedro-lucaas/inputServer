@@ -70,6 +70,7 @@ class ServerConfig : public BaseConfig
         void save(QFile& file) const;
         int numScreens() const;
         int autoAddScreen(const QString name);
+        bool addTrustedClient(const QString& name);
 
     protected:
         QSettings& settings() { return *m_pSettings; }

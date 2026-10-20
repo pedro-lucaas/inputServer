@@ -54,7 +54,9 @@ SettingsDialog::SettingsDialog(QWidget* parent, AppConfig& config) :
     ui_->m_pCheckBoxAutoStart->setChecked(app_config_.getAutoStart());
     ui_->m_pCheckBoxMinimizeToTray->setChecked(app_config_.getMinimizeToTray());
     ui_->m_pCheckBoxEnableCrypto->setChecked(app_config_.getCryptoEnabled());
-    ui_->checkbox_require_client_certificate->setChecked(app_config_.getRequireClientCertificate());
+    ui_->checkbox_require_client_certificate->setChecked(true);
+    ui_->checkbox_require_client_certificate->setEnabled(false);
+    ui_->checkbox_require_client_certificate->setToolTip(tr("Client approval requires a certificate to identify each computer."));
 
 #if defined(Q_OS_WIN)
     ui_->m_pComboElevate->setCurrentIndex(static_cast<int>(app_config_.elevateMode()));

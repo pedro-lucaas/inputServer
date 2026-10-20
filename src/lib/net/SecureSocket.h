@@ -23,6 +23,7 @@
 #include "net/XSocket.h"
 #include "io/filesystem.h"
 #include <mutex>
+#include <vector>
 
 namespace inputleap {
 
@@ -50,6 +51,7 @@ public:
     bool isFatal() const override { return m_fatal; }
     void isFatal(bool b) { m_fatal = b; }
     bool isSecureReady();
+    std::vector<std::uint8_t> trustedClientFingerprint();
     void secureConnect();
     void secureAccept();
     int secureRead(void* buffer, int size, int& read);
@@ -93,6 +95,7 @@ private:
     std::mutex ssl_mutex_;
 
     std::unique_ptr<Ssl> m_ssl;
+    std::vector<std::uint8_t> trusted_client_fingerprint_;
     bool m_secureReady;
     bool m_fatal;
     ConnectionSecurityLevel security_level_ = ConnectionSecurityLevel::ENCRYPTED;

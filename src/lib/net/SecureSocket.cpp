@@ -448,6 +448,10 @@ SecureSocket::secureAccept(int socket)
         if (security_level_ == ConnectionSecurityLevel::ENCRYPTED_AUTHENTICATED) {
             if (verify_peer_certificate(
                         inputleap::DataDirectories::trusted_clients_ssl_fingerprints_path())) {
+                X509* cert = SSL_get_peer_certificate(m_ssl->m_ssl);
+                auto free_cert = inputleap::finally([cert] { X509_free(cert); });
+                trusted_client_fingerprint_ = inputleap::get_ssl_cert_fingerprint(
+                    cert, inputleap::FingerprintType::SHA256).data;
                 LOG_INFO("accepted secure socket");
             }
             else {
@@ -643,6 +647,12 @@ std::string SecureSocket::getError()
     else {
         return "";
     }
+}
+
+std::vector<std::uint8_t> SecureSocket::trustedClientFingerprint()
+{
+    std::lock_guard<std::mutex> lock(ssl_mutex_);
+    return trusted_client_fingerprint_;
 }
 
 void
