@@ -110,6 +110,12 @@ Testam duplicação, liberação do lock, entrega do comando Parar e, no Windows
 encerramento exclusivo do filho vinculado ao Job Object. O workflow
 `.github/workflows/lifecycle.yml` roda esses testes em Windows e macOS.
 
+## Conexão do cliente macOS após TLS
+
+O cliente usa `SimpleEventQueueBuffer` para os eventos internos do motor. A fila Carbon continua no papel servidor, que captura entrada física. No cliente, a fila nativa pertence ao loop Cocoa da thread principal; usar essa mesma fila no processamento do protocolo podia perder eventos e deixar a interface em “Starting” depois de validar o certificado.
+
+O teste `macos-client-handshake` inicia o cliente real com perfil e certificados temporários, negocia TLS mútuo em localhost e envia a saudação do protocolo depois da inicialização do Cocoa. A versão anterior expirou nesse teste; a versão corrigida respondeu. Foram também validadas três conexões consecutivas com log INFO e arrastar/soltar habilitado contra o servidor Windows da rede local.
+
 ## Licença
 
 GPLv2 conforme [LICENSE](LICENSE). Os avisos de copyright dos autores do

@@ -20,6 +20,7 @@
 
 #include "base/EventQueue.h"
 #include "base/EventQueueTimer.h"
+#include "base/SimpleEventQueueBuffer.h"
 #include "client/Client.h"
 #include "platform/OSXClipboard.h"
 #include "platform/OSXEventQueueBuffer.h"
@@ -193,8 +194,14 @@ OSXScreen::OSXScreen(IEventQueue* events, bool isPrimary, bool autoShowHideCurso
 	m_events->add_handler(EventType::SYSTEM, m_events->getSystemTarget(),
                           [this](const auto& e){ handle_system_event(e); });
 
-	// install the platform event queue
-    m_events->set_buffer(std::make_unique<OSXEventQueueBuffer>(m_events));
+    // Only a primary screen consumes native input events. On a client,
+    // NSApplication owns the native queue on the main thread; sharing it
+    // with the protocol thread lets Cocoa consume its wake-up events.
+    if (m_isPrimary) {
+        m_events->set_buffer(std::make_unique<OSXEventQueueBuffer>(m_events));
+    } else {
+        m_events->set_buffer(std::make_unique<SimpleEventQueueBuffer>());
+    }
 }
 
 OSXScreen::~OSXScreen()
