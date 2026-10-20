@@ -29,6 +29,7 @@
 #include "TrustedClientRequest.h"
 #include <QSignalBlocker>
 #include "Theme.h"
+#include "NetworkProfile.h"
 #include "FingerprintAcceptDialog.h"
 #include "QUtility.h"
 #include "SslCertificate.h"
@@ -1217,8 +1218,16 @@ void MainWindow::initModernView()
 {
     // The role switch drives the two (checkable) group boxes, which remain the
     // source of truth for the role and are saved in the settings.
-    connect(ui_->buttonRoleServer, &QPushButton::clicked, this, [this] { setServerMode(true); });
-    connect(ui_->buttonRoleClient, &QPushButton::clicked, this, [this] { setServerMode(false); });
+    // updateRoleView() also re-checks a segment the user clicked while it was
+    // already selected (a checkable button would otherwise uncheck itself).
+    connect(ui_->buttonRoleServer, &QPushButton::clicked, this, [this] {
+        setServerMode(true);
+        updateRoleView();
+    });
+    connect(ui_->buttonRoleClient, &QPushButton::clicked, this, [this] {
+        setServerMode(false);
+        updateRoleView();
+    });
 
     connect(ui_->toolbutton_settings, &QToolButton::clicked,
             ui_->m_pActionSettings, &QAction::trigger);
@@ -1238,6 +1247,16 @@ void MainWindow::initModernView()
     ui_->m_pButtonToggleStart->setProperty("running", false);
     theme::repolish(ui_->centralwidget);
 
+    // A "Public" network keeps other computers out (the installer only opens
+    // the firewall for private ones); check periodically since users fix it
+    // in the Windows settings while the app is open.
+    connect(ui_->labelNetworkWarning, &QLabel::linkActivated, this, [](const QString&) {
+        QDesktopServices::openUrl(QUrl(QStringLiteral("ms-settings:network-status")));
+    });
+    network_check_timer_.setInterval(5000);
+    connect(&network_check_timer_, &QTimer::timeout, this, &MainWindow::updateNetworkWarning);
+    network_check_timer_.start();
+
     connect(ui_->buttonChooseServer, &QPushButton::clicked, this, [this] { chooseServer(); });
     connect(ui_->m_pCheckBoxAutoConfig, &QCheckBox::clicked, this, [this](bool checked) {
         if (checked) chooseServer();
@@ -1253,6 +1272,29 @@ void MainWindow::updateRoleView()
     ui_->m_pGroupClient->setVisible(!server);
     ui_->buttonRoleServer->setChecked(server);
     ui_->buttonRoleClient->setChecked(!server);
+    updateNetworkWarning();
+}
+
+void MainWindow::updateNetworkWarning()
+{
+    // Only the server needs inbound connections; clients just reach out.
+    const QStringList names = ui_->m_pGroupServer->isChecked()
+                            ? network_profile::publicNetworkNames() : QStringList{};
+    if (names.isEmpty()) {
+        ui_->labelNetworkWarning->hide();
+        return;
+    }
+
+    const QString list = names.join(QStringLiteral(", ")).toHtmlEscaped();
+    ui_->labelNetworkWarning->setText(names.size() == 1
+        ? tr("Windows treats the network <b>%1</b> as <b>public</b> and blocks other "
+             "computers from connecting to this server. "
+             "<a href=\"settings\">Change it to private</a> in the Windows settings.").arg(list)
+        : tr("Windows treats these networks as <b>public</b>: <b>%1</b>. It blocks other "
+             "computers from connecting to this server through them. "
+             "<a href=\"settings\">Change your home network to private</a> in the Windows "
+             "settings.").arg(list));
+    ui_->labelNetworkWarning->show();
 }
 
 void MainWindow::updateClientForm()

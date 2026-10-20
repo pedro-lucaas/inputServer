@@ -94,6 +94,9 @@ QToolTip { background: %2; color: %6; border: 1px solid %4; padding: 4px 6px; }
 QLabel#labelAppTitle { font-size: 20px; font-weight: 600; }
 QLabel#labelAppSubtitle, QLabel[hint="true"] { color: %7; }
 QLabel[cardTitle="true"] { font-size: 15px; font-weight: 600; }
+QLabel[warning="true"] {
+    background: %5; border-left: 3px solid %11; border-radius: 6px; padding: 8px 10px;
+}
 
 QGroupBox[card="true"], QFrame[card="true"] {
     background: %2; border: 1px solid %4; border-radius: 12px;

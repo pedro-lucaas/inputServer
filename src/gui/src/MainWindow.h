@@ -153,6 +153,7 @@ public slots:
         void clientDetected(const QString& name);
         void initModernView();
         void updateRoleView();
+        void updateNetworkWarning();
         void updateClientForm();
         bool chooseServer();
         void checkConnected(const QString& line);
@@ -194,6 +195,7 @@ public slots:
 
         bool m_fingerprint_expanded = false;
         QTimer restartTimer_;
+        QTimer network_check_timer_;
         ProcessGuard processGuard_;
 
 private slots:

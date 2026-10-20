@@ -180,14 +180,24 @@ InputServer is released under the GNU General Public License (GPLv2).
         <translation type="unfinished">SHA256:</translation>
     </message>
     <message>
-        <location filename="../../src/FingerprintAcceptDialog.cpp" line="+46"/>
-        <source>This is a client fingerprint. You should compare this fingerprint to the one on your client&apos;s screen. If the two don&apos;t match exactly, then it&apos;s probably not the client you&apos;re expecting (it could be a malicious user).
-
-To automatically trust this fingerprint for future connections, click Yes. To reject this fingerprint and disconnect the client, click No.</source>
+        <location filename="../../src/FingerprintAcceptDialog.cpp" line="+32"/>
+        <source>New client connection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location line="+8"/>
+        <location line="+1"/>
+        <source>Allow this client to connect?</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+15"/>
+        <source>This is a client fingerprint. You should compare this fingerprint to the one on your client&apos;s screen. If the two don&apos;t match exactly, then it&apos;s probably not the client you&apos;re expecting (it could be a malicious user).
+
+To automatically trust this fingerprint for future connections and add this computer to the server automatically, click Yes. Its screen will be placed to the right when space is available; you can change its position later. To reject the client, click No.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+9"/>
         <source>This is a server fingerprint. You should compare this fingerprint to the one on your server&apos;s screen. If the two don&apos;t match exactly, then it&apos;s probably not the server you&apos;re expecting (it could be a malicious user).
 
 To automatically trust this fingerprint for future connections, click Yes. To reject this fingerprint and disconnect from the server, click No.</source>
@@ -245,7 +255,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     </message>
     <message>
         <location line="+54"/>
-        <location filename="../../src/MainWindow.cpp" line="+976"/>
+        <location filename="../../src/MainWindow.cpp" line="+1014"/>
         <source>Stopped</source>
         <translation>Parado</translation>
     </message>
@@ -280,7 +290,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <translation>O teclado e o mouse dele controlam os outros computadores. Leve o cursor além da borda da tela para trocar de computador.</translation>
     </message>
     <message>
-        <location line="+21"/>
+        <location line="+40"/>
         <source>Address of this computer:</source>
         <translation>Endereço deste computador:</translation>
     </message>
@@ -340,7 +350,18 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <translation>Servidor:</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="+16"/>
+        <source>Choose server...</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+5"/>
+        <location filename="../../src/MainWindow.cpp" line="+296"/>
+        <source>No server selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>Server I&amp;P:</source>
         <translation>I&amp;P do servidor:</translation>
     </message>
@@ -392,7 +413,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     <message>
         <location line="+10"/>
         <location line="+41"/>
-        <location filename="../../src/MainWindow.cpp" line="-39"/>
+        <location filename="../../src/MainWindow.cpp" line="-335"/>
         <source>&amp;Start</source>
         <translation>&amp;Iniciar</translation>
     </message>
@@ -477,7 +498,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <translation>Mostrar log</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="-663"/>
+        <location filename="../../src/MainWindow.cpp" line="-696"/>
         <source>&amp;File</source>
         <translation>Arquivo</translation>
     </message>
@@ -502,22 +523,21 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     </message>
     <message>
         <location line="-137"/>
-        <location line="+928"/>
+        <location line="+967"/>
         <source>Stop and quit InputServer</source>
         <translation>Parar e sair do InputServer</translation>
     </message>
     <message>
-        <location line="-792"/>
+        <location line="-831"/>
         <source>&amp;InputServer</source>
         <translation>&amp;InputServer</translation>
     </message>
     <message>
-        <location line="+182"/>
         <source>InputServer is now connected. You can close the config window and InputServer will remain connected in the background.</source>
-        <translation>O InputServer está conectado. Você pode fechar esta janela; ele continua conectado em segundo plano.</translation>
+        <translation type="vanished">O InputServer está conectado. Você pode fechar esta janela; ele continua conectado em segundo plano.</translation>
     </message>
     <message>
-        <location line="+198"/>
+        <location line="+424"/>
         <source>Program can not be started</source>
         <translation>Programa não pode ser iniciado</translation>
     </message>
@@ -537,12 +557,26 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <translation>O executável para o cliente do InputServer não existe.</translation>
     </message>
     <message>
-        <location line="+31"/>
         <source>waiting for a server on the network</source>
-        <translation>aguardando um servidor na rede</translation>
+        <translation type="vanished">aguardando um servidor na rede</translation>
     </message>
     <message>
-        <location line="+7"/>
+        <location line="-174"/>
+        <source>Cannot add %1 automatically while using an external configuration file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+4"/>
+        <source>Trusted client added automatically: %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Could not add %1 automatically. Check the server screen layout.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+198"/>
         <source>Hostname is empty</source>
         <translation>Nome do servidor:</translation>
     </message>
@@ -582,7 +616,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <translation>O executável para o servidor do InputServer não existe.</translation>
     </message>
     <message>
-        <location line="+49"/>
+        <location line="+45"/>
         <source>Unable to stop the process. See the log.</source>
         <translation>Não foi possível parar o processo. Veja o log.</translation>
     </message>
@@ -610,27 +644,37 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <translation>Iniciando...</translation>
     </message>
     <message>
-        <location line="+148"/>
+        <location line="+150"/>
         <source>automatic discovery unavailable: %1</source>
         <translation>descoberta automática indisponível: %1</translation>
     </message>
     <message>
-        <location line="+13"/>
+        <location line="+21"/>
         <source>server found on the network: %1</source>
         <translation>servidor encontrado na rede: %1</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+14"/>
         <source>server no longer answering: %1</source>
         <translation>servidor parou de responder: %1</translation>
     </message>
     <message>
-        <location line="+15"/>
+        <location line="+18"/>
         <source>client found on the network: %1</source>
         <translation>cliente encontrado na rede: %1</translation>
     </message>
     <message>
-        <location line="+168"/>
+        <location line="+77"/>
+        <source>Windows treats the network &lt;b&gt;%1&lt;/b&gt; as &lt;b&gt;public&lt;/b&gt; and blocks other computers from connecting to this server. &lt;a href=&quot;settings&quot;&gt;Change it to private&lt;/a&gt; in the Windows settings.</source>
+        <translation>O Windows considera a rede &lt;b&gt;%1&lt;/b&gt; como &lt;b&gt;pública&lt;/b&gt; e bloqueia a conexão de outros computadores a este servidor. &lt;a href=&quot;settings&quot;&gt;Mude para privada&lt;/a&gt; nas configurações do Windows.</translation>
+    </message>
+    <message>
+        <location line="+3"/>
+        <source>Windows treats these networks as &lt;b&gt;public&lt;/b&gt;: &lt;b&gt;%1&lt;/b&gt;. It blocks other computers from connecting to this server through them. &lt;a href=&quot;settings&quot;&gt;Change your home network to private&lt;/a&gt; in the Windows settings.</source>
+        <translation>O Windows considera estas redes como &lt;b&gt;públicas&lt;/b&gt;: &lt;b&gt;%1&lt;/b&gt;. Ele bloqueia a conexão de outros computadores a este servidor por elas. &lt;a href=&quot;settings&quot;&gt;Mude a rede da sua casa para privada&lt;/a&gt; nas configurações do Windows.</translation>
+    </message>
+    <message>
+        <location line="+162"/>
         <source>Please add the server (%1) to the grid.</source>
         <translation>Adicione o servidor (%1) à grade.</translation>
     </message>
@@ -652,17 +696,17 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <translation type="vanished">InputServer não esta rodando.</translation>
     </message>
     <message>
-        <location line="-303"/>
+        <location line="-383"/>
         <source>Unknown</source>
         <translation>Desconhecido</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.ui" line="-740"/>
+        <location filename="../../src/MainWindow.ui" line="-770"/>
         <source>InputServer</source>
         <translation>InputServer</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="+251"/>
+        <location filename="../../src/MainWindow.cpp" line="+331"/>
         <source>Browse for a InputServer config file</source>
         <translation>Selecionar um arquivo de configuração InputServer</translation>
     </message>
@@ -819,7 +863,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="-1241"/>
+        <location filename="../../src/MainWindow.cpp" line="-1360"/>
         <source>All files (*.*)</source>
         <translation>Todos os arquivos (*.*)</translation>
     </message>
@@ -1044,6 +1088,40 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <location filename="../../src/ScreenSetupView.cpp" line="+75"/>
         <source>Unnamed</source>
         <translation type="unfinished">Sem nome</translation>
+    </message>
+</context>
+<context>
+    <name>ServerBrowserDialog</name>
+    <message>
+        <location filename="../../src/ServerBrowserDialog.cpp" line="+15"/>
+        <location line="+11"/>
+        <source>Available servers</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="-8"/>
+        <source>Choose the computer whose keyboard and mouse will control this Mac.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Choose the computer whose keyboard and mouse will control this computer.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+12"/>
+        <source>Select server</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+64"/>
+        <source>Searching the local network... No servers found yet. Keep the server running on the same network, or cancel and enter its IP manually.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>The list updates automatically. Select a server to continue.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1379,7 +1457,12 @@ Clique duplo numa tela para editar as suas configurações.</translation>
 <context>
     <name>SettingsDialog</name>
     <message>
-        <location filename="../../src/SettingsDialog.cpp" line="+134"/>
+        <location filename="../../src/SettingsDialog.cpp" line="+59"/>
+        <source>Client approval requires a certificate to identify each computer.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+77"/>
         <source>Save log file to...</source>
         <translation>Salvar o arquivo de log em...</translation>
     </message>
@@ -1609,63 +1692,24 @@ Isso permite ao InputServer interagir com processos privilegiados e com o UAC, m
 <context>
     <name>SetupWizard</name>
     <message>
-        <location filename="../../src/SetupWizard.ui" line="+26"/>
-        <location filename="../../src/SetupWizard.cpp" line="+65"/>
         <source>Setup InputServer</source>
-        <translation>Configurar InputServer</translation>
+        <translation type="vanished">Configurar InputServer</translation>
     </message>
     <message>
-        <location line="+4"/>
         <source>Welcome</source>
-        <translation type="unfinished">Bem-vindo</translation>
+        <translation type="obsolete">Bem-vindo</translation>
     </message>
     <message>
-        <location line="+9"/>
         <source>Thanks for installing InputServer!</source>
-        <translation type="unfinished">Obrigado por instalar o InputServer!</translation>
+        <translation type="obsolete">Obrigado por instalar o InputServer!</translation>
     </message>
     <message>
-        <location line="+75"/>
-        <source>InputServer lets you easily share your mouse and keyboard between multiple computers on your desk, and it&apos;s Free and Open Source. Just move your mouse off the edge of one computer&apos;s screen on to another. You can even share all of your clipboards. All you need is a network connection. InputServer is cross-platform (works on Windows and macOS).</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+17"/>
         <source>Server or Client?</source>
-        <translation type="unfinished">Servidor ou Cliente?</translation>
+        <translation type="obsolete">Servidor ou Cliente?</translation>
     </message>
     <message>
-        <location line="+15"/>
-        <source>&amp;Server (share this computer&apos;s mouse and keyboard)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;My main mouse and keyboard are connected to this computer. This will allow you to move your mouse over to another computer&apos;s screen. There can only be one server in your setup.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+36"/>
-        <source>&amp;Client (use another computer&apos;s mouse and keyboard)</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location line="+13"/>
-        <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
-p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:&apos;MS Shell Dlg 2&apos;; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:8pt;&quot;&gt;You have already set up a server. This computer will be controlled using the server&apos;s mouse and keyboard. There can be many clients in your setup.&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../../src/SetupWizard.cpp" line="+10"/>
         <source>Please select an option.</source>
-        <translation>Por favor, selecione uma opção</translation>
+        <translation type="vanished">Por favor, selecione uma opção</translation>
     </message>
     <message>
         <source>Please enter your email address and password.</source>

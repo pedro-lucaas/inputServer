@@ -47,6 +47,7 @@ set(GUI_SOURCE_FILES
     src/ServerConfigDialog.cpp
     src/SettingsDialog.cpp
     src/SslCertificate.cpp
+    src/NetworkProfile.cpp
     src/Theme.cpp
     src/TrashScreenWidget.cpp
     src/UdpDiscovery.cpp
@@ -81,6 +82,7 @@ set(GUI_HEADER_FILES
     src/ServerConfig.h
     src/SettingsDialog.h
     src/SslCertificate.h
+    src/NetworkProfile.h
     src/Theme.h
     src/TrashScreenWidget.h
     src/UdpDiscovery.h
@@ -190,6 +192,8 @@ target_compile_definitions (input-leap PRIVATE -DINPUTLEAP_REVISION="${INPUTLEAP
 
 if (BUILD_MSWINDOWS)
     set_target_properties (input-leap PROPERTIES LINK_FLAGS "/NODEFAULTLIB:LIBCMT")
+    # NetworkProfile.cpp: Network List Manager (COM) and BSTR helpers
+    target_link_libraries (input-leap ole32 oleaut32)
 endif()
 if (BUILD_CARBON)
     find_library(APPSERVICES_LIB ApplicationServices)
