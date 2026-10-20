@@ -24,6 +24,7 @@
 #include "AppConfig.h"
 #include "SetupWizard.h"
 #include "SingleInstance.h"
+#include "Theme.h"
 
 #include <QtCore>
 #include <QtGui>
@@ -82,6 +83,8 @@ int main(int argc, char* argv[])
 
     QInputLeapApplication app(argc, argv);
     app.setApplicationDisplayName("InputServer");
+    theme::install(app);
+    theme::install(app);
     QByteArray instanceCommand = "show";
     for (const auto& argument : app.arguments()) {
         if (argument == "--stop" || argument == "--start" || argument == "--quit") {

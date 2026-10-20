@@ -47,6 +47,7 @@ set(GUI_SOURCE_FILES
     src/SettingsDialog.cpp
     src/SetupWizard.cpp
     src/SslCertificate.cpp
+    src/Theme.cpp
     src/TrashScreenWidget.cpp
     src/UdpDiscovery.cpp
 )
@@ -80,6 +81,7 @@ set(GUI_HEADER_FILES
     src/SettingsDialog.h
     src/SetupWizard.h
     src/SslCertificate.h
+    src/Theme.h
     src/TrashScreenWidget.h
     src/UdpDiscovery.h
 )

@@ -153,6 +153,9 @@ public slots:
         void serverDetected(const QString& name, const QHostAddress& address, quint16 port);
         void serverLost(const QString& name, const QHostAddress& address);
         void clientDetected(const QString& name);
+        void initModernView();
+        void updateRoleView();
+        void updateClientForm();
         void checkConnected(const QString& line);
         void checkFingerprint(const QString& line);
         void restart_cmd_app();

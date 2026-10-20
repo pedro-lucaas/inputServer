@@ -25,6 +25,7 @@
 #include "ServerConfigDialog.h"
 #include "SettingsDialog.h"
 #include "UdpDiscovery.h"
+#include "Theme.h"
 #include "FingerprintAcceptDialog.h"
 #include "QUtility.h"
 #include "SslCertificate.h"
@@ -168,7 +169,6 @@ MainWindow::MainWindow(QSettings& settings, AppConfig& appConfig) :
 
     ui_->m_pCheckBoxAutoConfig->setChecked(appConfig.autoConfig());
 
-    ui_->m_pComboServerList->hide();
     ui_->m_pLabelPadlock->hide();
     ui_->m_pLabelPadlock->setPixmap(QPixmap(":/res/icons/64x64/padlock.png").scaledToHeight(fontMetrics().height() * 1.5, Qt::SmoothTransformation));
     ui_->frame_fingerprint_details->hide();
@@ -188,6 +188,8 @@ MainWindow::MainWindow(QSettings& settings, AppConfig& appConfig) :
             ui_->toolbutton_show_fingerprint->setArrowType(Qt::ArrowType::DownArrow);
         }
     });
+
+    initModernView();
 
     // resize window to smallest reasonable size
     resize(0, 0);
@@ -939,6 +941,17 @@ void MainWindow::set_connection_state(AppConnectionState state)
     const bool active = state != AppConnectionState::DISCONNECTED;
     ui_->m_pActionStartCmdApp->setEnabled(!active);
     ui_->m_pActionStopCmdApp->setEnabled(active);
+    // Changing the role while running would leave the engine in the old one.
+    ui_->frameRoleSwitch->setEnabled(!active);
+
+    if (state != AppConnectionState::TRANSFERRING) {
+        const char* pill = state == AppConnectionState::CONNECTED ? "on"
+                         : state == AppConnectionState::CONNECTING ? "starting" : "off";
+        ui_->frameStatusPill->setProperty("state", pill);
+        ui_->m_pButtonToggleStart->setProperty("running", active);
+        theme::repolish(ui_->frameStatusPill);
+        theme::repolish(ui_->m_pButtonToggleStart);
+    }
 
     switch (state)
     {
@@ -950,17 +963,17 @@ void MainWindow::set_connection_state(AppConnectionState state)
             ui_->m_pLabelPadlock->hide();
         }
 
-        setStatus(tr("InputServer is running."));
+        setStatus(tr("Running"));
 
         break;
     }
     case AppConnectionState::CONNECTING:
         ui_->m_pLabelPadlock->hide();
-        setStatus(tr("InputServer is starting."));
+        setStatus(tr("Starting..."));
         break;
     case AppConnectionState::DISCONNECTED:
         ui_->m_pLabelPadlock->hide();
-        setStatus(tr("InputServer is not running."));
+        setStatus(tr("Stopped"));
         break;
     case AppConnectionState::TRANSFERRING:
         break;
@@ -1083,7 +1096,7 @@ void MainWindow::updateDiscovery()
     waiting_for_server_ = false;
     discovered_clients_.clear();
     ui_->m_pComboServerList->clear();
-    ui_->m_pComboServerList->hide();
+    updateClientForm();
 
     if (m_AppConfig->wizardShouldRun()) {
         return;
@@ -1121,9 +1134,7 @@ void MainWindow::serverDetected(const QString& name, const QHostAddress& address
     // Note: the first added item triggers a (re)start of the client
     ui_->m_pComboServerList->addItem(label, QStringList{host, QString::number(port)});
 
-    if (ui_->m_pComboServerList->count() > 1) {
-        ui_->m_pComboServerList->show();
-    }
+    updateClientForm();
 }
 
 void MainWindow::serverLost(const QString& name, const QHostAddress& address)
@@ -1139,9 +1150,7 @@ void MainWindow::serverLost(const QString& name, const QHostAddress& address)
     if (index != ui_->m_pComboServerList->currentIndex()) {
         ui_->m_pComboServerList->removeItem(index);
     }
-    if (ui_->m_pComboServerList->count() <= 1) {
-        ui_->m_pComboServerList->hide();
-    }
+    updateClientForm();
 }
 
 void MainWindow::clientDetected(const QString& name)
@@ -1153,6 +1162,54 @@ void MainWindow::clientDetected(const QString& name)
     discovered_clients_.insert(name);
     appendLogInfo(tr("client found on the network: %1").arg(name));
     autoAddScreen(name);
+}
+
+void MainWindow::initModernView()
+{
+    // The role switch drives the two (checkable) group boxes, which remain the
+    // source of truth for the role and are saved in the settings.
+    connect(ui_->buttonRoleServer, &QPushButton::clicked, this, [this] { setServerMode(true); });
+    connect(ui_->buttonRoleClient, &QPushButton::clicked, this, [this] { setServerMode(false); });
+
+    connect(ui_->toolbutton_settings, &QToolButton::clicked,
+            ui_->m_pActionSettings, &QAction::trigger);
+    connect(ui_->toolbutton_log, &QToolButton::clicked, ui_->m_pActionShowLog, &QAction::trigger);
+
+    // Advanced server options start collapsed unless a config file is in use.
+    const bool external_config = ui_->m_pRadioExternalConfig->isChecked();
+    ui_->toolbutton_server_advanced->setChecked(external_config);
+    ui_->frame_server_advanced->setVisible(external_config);
+    ui_->toolbutton_server_advanced->setArrowType(external_config ? Qt::DownArrow : Qt::RightArrow);
+    connect(ui_->toolbutton_server_advanced, &QToolButton::toggled, this, [this](bool on) {
+        ui_->frame_server_advanced->setVisible(on);
+        ui_->toolbutton_server_advanced->setArrowType(on ? Qt::DownArrow : Qt::RightArrow);
+    });
+
+    ui_->frameStatusPill->setProperty("state", "off");
+    ui_->m_pButtonToggleStart->setProperty("running", false);
+    theme::repolish(ui_->centralwidget);
+
+    updateRoleView();
+    updateClientForm();
+}
+
+void MainWindow::updateRoleView()
+{
+    const bool server = ui_->m_pGroupServer->isChecked();
+    ui_->m_pGroupServer->setVisible(server);
+    ui_->m_pGroupClient->setVisible(!server);
+    ui_->buttonRoleServer->setChecked(server);
+    ui_->buttonRoleClient->setChecked(!server);
+}
+
+void MainWindow::updateClientForm()
+{
+    const bool automatic = ui_->m_pCheckBoxAutoConfig->isChecked();
+    const bool found = ui_->m_pComboServerList->count() > 0;
+    ui_->labelServerFound->setVisible(automatic && found);
+    ui_->m_pComboServerList->setVisible(automatic && found);
+    ui_->m_pLabelServerName->setVisible(!automatic);
+    ui_->m_pLineEditHostname->setVisible(!automatic);
 }
 
 void MainWindow::updateSSLFingerprint()
@@ -1208,6 +1265,7 @@ void MainWindow::updateSSLFingerprint()
 void MainWindow::on_m_pGroupClient_toggled(bool on)
 {
     ui_->m_pGroupServer->setChecked(!on);
+    updateRoleView();
     if (on) {
         updateDiscovery();
     }
@@ -1216,6 +1274,7 @@ void MainWindow::on_m_pGroupClient_toggled(bool on)
 void MainWindow::on_m_pGroupServer_toggled(bool on)
 {
     ui_->m_pGroupClient->setChecked(!on);
+    updateRoleView();
     if (on) {
         updateDiscovery();
     }
@@ -1324,6 +1383,7 @@ void MainWindow::on_m_pCheckBoxAutoConfig_toggled(bool checked)
     ui_->m_pLineEditHostname->setDisabled(checked);
     appConfig().setAutoConfig(checked);
     updateDiscovery();
+    updateClientForm();
 }
 
 void MainWindow::windowStateChanged()
