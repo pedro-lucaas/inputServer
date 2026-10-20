@@ -73,7 +73,7 @@ BEGIN
             VALUE "ProductName", "InputServer"
             VALUE "ProductVersion", INPUTLEAP_VERSION
             VALUE "OriginalFilename", "inputserver-daemon.exe"
-            VALUE "FileDescription", "Open source KVM software daemon"
+            VALUE "FileDescription", "InputServer (daemon)"
             VALUE "InternalName", "inputserver-daemon"
         END
     END

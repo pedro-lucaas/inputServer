@@ -54,7 +54,6 @@ class AppConfig: public QObject
 
     friend class SettingsDialog;
     friend class MainWindow;
-    friend class SetupWizard;
 
     public:
         AppConfig(QSettings* settings);

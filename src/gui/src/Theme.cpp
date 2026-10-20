@@ -114,6 +114,7 @@ QFrame#frameRoleSwitch QPushButton {
 QFrame#frameRoleSwitch QPushButton:hover { color: %6; }
 QFrame#frameRoleSwitch QPushButton:checked { background: %2; color: %6; }
 QFrame#frameRoleSwitch QPushButton:disabled { color: %7; }
+QFrame#frameRoleSwitch QPushButton:checked:disabled { background: %2; color: %7; }
 
 QFrame#frameStatusPill { background: %5; border-radius: 11px; }
 QFrame#frameStatusPill QLabel { font-weight: 500; }

@@ -58,7 +58,6 @@ class QAbstractButton;
 
 class LogDialog;
 class QInputLeapApplication;
-class SetupWizard;
 class UdpDiscovery;
 class SslCertificate;
 
@@ -71,7 +70,6 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
     friend class QInputLeapApplication;
-    friend class SetupWizard;
 
     public:
         enum qLevel {

@@ -55,6 +55,7 @@
 #endif
 
 #include <signal.h>
+#include <algorithm>
 
 namespace {
 
@@ -447,13 +448,9 @@ void MainWindow::checkConnected(const QString& line)
     {
         set_connection_state(AppConnectionState::CONNECTED);
 
-        if (!appConfig().startedBefore() && isVisible()) {
-                QMessageBox::information(
-                    this, "InputServer",
-                    tr("InputServer is now connected. You can close the "
-                    "config window and InputServer will remain connected in "
-                    "the background."));
-
+        // The status pill already shows the state; only remember the first
+        // successful start (used by auto start).
+        if (!appConfig().startedBefore()) {
             appConfig().setStartedBefore(true);
             appConfig().saveSettings();
         }
@@ -1009,6 +1006,11 @@ void MainWindow::setVisible(bool visible)
 QString MainWindow::getIPAddresses()
 {
     QList<QHostAddress> addresses = QNetworkInterface::allAddresses();
+    // Local network addresses first; VPN and virtual adapters after.
+    std::stable_sort(addresses.begin(), addresses.end(),
+                     [](const QHostAddress& a, const QHostAddress& b) {
+        return UdpDiscovery::addressRank(a) < UdpDiscovery::addressRank(b);
+    });
 
     bool hinted = false;
     QString result;
@@ -1098,10 +1100,6 @@ void MainWindow::updateDiscovery()
     ui_->m_pComboServerList->clear();
     updateClientForm();
 
-    if (m_AppConfig->wizardShouldRun()) {
-        return;
-    }
-
     const bool server = app_role() == AppRole::Server;
     if (!server && !m_AppConfig->autoConfig()) {
         return;
@@ -1126,13 +1124,21 @@ void MainWindow::serverDetected(const QString& name, const QHostAddress& address
 {
     const QString host = address.toString();
     const QString label = QStringLiteral("%1 (%2)").arg(name, host);
-    if (ui_->m_pComboServerList->findText(label) != -1) {
+    const QStringList server{host, QString::number(port)};
+    constexpr int kNameRole = Qt::UserRole + 1;
+
+    // Discovery may report a better address for a server already listed.
+    const int existing = ui_->m_pComboServerList->findData(name, kNameRole);
+    if (existing != -1) {
+        ui_->m_pComboServerList->setItemData(existing, server);
+        ui_->m_pComboServerList->setItemText(existing, label);
         return;
     }
 
     appendLogInfo(tr("server found on the network: %1").arg(label));
     // Note: the first added item triggers a (re)start of the client
-    ui_->m_pComboServerList->addItem(label, QStringList{host, QString::number(port)});
+    ui_->m_pComboServerList->addItem(label, server);
+    ui_->m_pComboServerList->setItemData(ui_->m_pComboServerList->count() - 1, name, kNameRole);
 
     updateClientForm();
 }

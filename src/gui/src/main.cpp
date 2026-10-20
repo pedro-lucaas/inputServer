@@ -22,7 +22,6 @@
 #include "QInputLeapApplication.h"
 #include "MainWindow.h"
 #include "AppConfig.h"
-#include "SetupWizard.h"
 #include "SingleInstance.h"
 #include "Theme.h"
 
@@ -143,7 +142,6 @@ int main(int argc, char* argv[])
 	app.switchTranslator(appConfig.language());
 
 	MainWindow mainWindow(settings, appConfig);
-	SetupWizard setupWizard(mainWindow, true);
     instance.onCommand(&mainWindow, [&](QByteArray command) {
         if (command == "stop" || command == "quit") {
             QMetaObject::invokeMethod(&mainWindow, "stop_cmd_app", Qt::DirectConnection);
@@ -156,24 +154,13 @@ int main(int argc, char* argv[])
             mainWindow.start_cmd_app();
             return;
         }
-        if (setupWizard.isVisible()) {
-            setupWizard.raise();
-            setupWizard.activateWindow();
-        } else {
-            mainWindow.showNormal();
-            mainWindow.raise();
-            mainWindow.activateWindow();
-        }
+        mainWindow.showNormal();
+        mainWindow.raise();
+        mainWindow.activateWindow();
     });
 
-	if (appConfig.wizardShouldRun())
-	{
-		setupWizard.show();
-	}
-	else
-	{
-		mainWindow.open();
-	}
+    // No first-run wizard: the role switch and settings live in the main window.
+    mainWindow.open();
     QObject::connect(&mainWindow, &MainWindow::requestLanguageChange, &app, &QInputLeapApplication::switchTranslator);
 	return app.exec();
 }

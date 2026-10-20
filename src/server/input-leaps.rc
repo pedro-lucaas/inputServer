@@ -74,7 +74,7 @@ BEGIN
             VALUE "ProductName", "InputServer"
             VALUE "ProductVersion", INPUTLEAP_VERSION
             VALUE "OriginalFilename", "inputserver-server.exe"
-            VALUE "FileDescription", "Open source KVM software server"
+            VALUE "FileDescription", "InputServer (servidor)"
             VALUE "InternalName", "inputserver-server"
         END
     END

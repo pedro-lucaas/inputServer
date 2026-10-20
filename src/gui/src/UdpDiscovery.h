@@ -67,8 +67,13 @@ public:
     static QByteArray encode(const Message& message);
     static std::optional<Message> decode(const QByteArray& datagram);
 
+    // Lower is better: 192.168/16, 10/8, 172.16/12, then anything else
+    // (VPN, CGNAT, virtual adapters).
+    static int addressRank(const QHostAddress& address);
+
 signals:
-    // Client side: a server answered, or was not heard from for a while.
+    // Client side: a server answered (again with a better address for the same
+    // name, e.g. LAN instead of VPN), or was not heard from for a while.
     void serverFound(const QString& name, const QHostAddress& address, quint16 port);
     void serverLost(const QString& name, const QHostAddress& address);
     // Server side: a client is looking for servers.
@@ -79,7 +84,6 @@ private:
     void readPending();
     void handle(const Message& message, const QHostAddress& sender, quint16 sender_port);
     void expirePeers();
-    static QString peerKey(const QHostAddress& address, const QString& name);
 
     Role role_;
     QString screen_name_;

@@ -234,15 +234,23 @@ void UdpDiscovery::handle(const Message& message, const QHostAddress& sender,
 
     if (role_ == Role::Client && message.type == QLatin1String(kTypeAnnounce) &&
         message.role == Role::Server) {
-        const QString key = peerKey(sender, message.name);
-        const bool is_new = !servers_.contains(key);
-        Peer& peer = servers_[key];
-        peer.name = message.name;
-        peer.address = sender;
-        peer.port = message.port;
-        peer.last_seen = QDateTime::currentDateTimeUtc();
-        if (is_new) {
+        // A server with several network interfaces (VPN, virtual machines)
+        // answers once per interface; keep one entry with the best address.
+        const QString key = message.name;
+        auto it = servers_.find(key);
+        if (it == servers_.end()) {
+            Peer peer{message.name, sender, message.port, QDateTime::currentDateTimeUtc()};
+            servers_.insert(key, peer);
             emit serverFound(peer.name, peer.address, peer.port);
+            return;
+        }
+
+        it->last_seen = QDateTime::currentDateTimeUtc();
+        if (addressRank(sender) < addressRank(it->address)) {
+            // Same server, better address: listeners update the entry by name.
+            it->address = sender;
+            it->port = message.port;
+            emit serverFound(it->name, it->address, it->port);
         }
     }
 }
@@ -261,7 +269,17 @@ void UdpDiscovery::expirePeers()
     }
 }
 
-QString UdpDiscovery::peerKey(const QHostAddress& address, const QString& name)
+int UdpDiscovery::addressRank(const QHostAddress& address)
 {
-    return address.toString() + QLatin1Char('|') + name;
+    // Home and office LANs first; VPN/CGNAT ranges (e.g. 100.64.0.0/10) last.
+    if (address.isInSubnet(QHostAddress(QStringLiteral("192.168.0.0")), 16)) {
+        return 0;
+    }
+    if (address.isInSubnet(QHostAddress(QStringLiteral("10.0.0.0")), 8)) {
+        return 1;
+    }
+    if (address.isInSubnet(QHostAddress(QStringLiteral("172.16.0.0")), 12)) {
+        return 2;
+    }
+    return 3;
 }

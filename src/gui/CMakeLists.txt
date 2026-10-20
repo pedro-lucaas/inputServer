@@ -45,7 +45,6 @@ set(GUI_SOURCE_FILES
     src/ServerConfig.cpp
     src/ServerConfigDialog.cpp
     src/SettingsDialog.cpp
-    src/SetupWizard.cpp
     src/SslCertificate.cpp
     src/Theme.cpp
     src/TrashScreenWidget.cpp
@@ -79,7 +78,6 @@ set(GUI_HEADER_FILES
     src/ServerConfigDialog.h
     src/ServerConfig.h
     src/SettingsDialog.h
-    src/SetupWizard.h
     src/SslCertificate.h
     src/Theme.h
     src/TrashScreenWidget.h
@@ -97,7 +95,6 @@ set(GUI_UI_FILES
     src/ScreenSettingsDialog.ui
     src/ServerConfigDialog.ui
     src/SettingsDialog.ui
-    src/SetupWizard.ui
 )
 
 set(TS_FILES
