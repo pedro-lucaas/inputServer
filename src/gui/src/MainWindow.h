@@ -158,6 +158,7 @@ public slots:
         void initModernView();
         void updateRoleView();
         void updateNetworkWarning();
+        void updateTrayMenu();
         void updateClientForm();
         bool chooseServer();
         void checkConnected(const QString& line);
@@ -181,6 +182,16 @@ public slots:
         QTemporaryFile* m_pTempConfigFile;
         QSystemTrayIcon* m_pTrayIcon;
         QMenu* m_pTrayIconMenu;
+        QAction* tray_status_ = nullptr;
+        QAction* tray_toggle_ = nullptr;
+        QMenu* tray_role_menu_ = nullptr;
+        QAction* tray_role_server_ = nullptr;
+        QAction* tray_role_client_ = nullptr;
+        QAction* tray_arrange_ = nullptr;
+        QAction* tray_open_ = nullptr;
+        QAction* tray_log_ = nullptr;
+        QAction* tray_settings_ = nullptr;
+        QAction* tray_quit_ = nullptr;
         bool m_AlreadyHidden;
         IpcClient m_IpcClient;
         QMenuBar* m_pMenuBar;

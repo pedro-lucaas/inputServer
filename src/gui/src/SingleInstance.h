@@ -9,6 +9,17 @@
 #include <QVariant>
 #include <functional>
 
+#if defined(Q_OS_WIN)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#include <QCryptographicHash>
+#endif
+
 // The lock owns the endpoint: only its owner may remove a stale socket.
 // Use an app-specific directory in the current user's profile.
 class SingleInstance : public QObject
@@ -23,9 +34,18 @@ public:
         server_.setSocketOptions(QLocalServer::UserAccessOption);
     }
 
+#if defined(Q_OS_WIN)
+    ~SingleInstance() override
+    {
+        if (mutex_) {
+            CloseHandle(mutex_);
+        }
+    }
+#endif
+
     bool acquire(const QByteArray& command = "show")
     {
-        if (!lock_.tryLock()) {
+        if (anotherInstanceRunning() || !lock_.tryLock()) {
             QLocalSocket socket;
             socket.connectToServer(endpoint_);
             if (socket.waitForConnected(1500)) {
@@ -69,7 +89,37 @@ public:
     }
 
 private:
+    // QLockFile cannot always tell that an elevated copy (e.g. started by an
+    // installer run as administrator) is alive, and that let a second copy
+    // start with a second tray icon. A named mutex in the session namespace
+    // is seen by both: opening one created by an elevated process fails with
+    // ERROR_ACCESS_DENIED, which still means "running".
+    bool anotherInstanceRunning()
+    {
+#if defined(Q_OS_WIN)
+        if (mutex_) {
+            return false;
+        }
+        const QByteArray id = QCryptographicHash::hash(endpoint_.toUtf8(),
+                                                       QCryptographicHash::Sha1).toHex();
+        const std::wstring name = L"Local\\InputServer-GUI-" + QString::fromLatin1(id).toStdWString();
+        mutex_ = CreateMutexW(nullptr, FALSE, name.c_str());
+        const DWORD error = GetLastError();
+        if (mutex_ && error == ERROR_ALREADY_EXISTS) {
+            CloseHandle(mutex_);
+            mutex_ = nullptr;
+            return true;
+        }
+        return !mutex_ && error == ERROR_ACCESS_DENIED;
+#else
+        return false;
+#endif
+    }
+
     QLockFile lock_;
     QString endpoint_;
     QLocalServer server_;
+#if defined(Q_OS_WIN)
+    HANDLE mutex_ = nullptr;
+#endif
 };

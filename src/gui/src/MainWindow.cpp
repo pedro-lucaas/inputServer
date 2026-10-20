@@ -42,6 +42,7 @@
 #include <QtGui>
 #include <QtNetwork>
 #include <QNetworkAccessManager>
+#include <QActionGroup>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -249,21 +250,63 @@ void MainWindow::setStatus(const QString &status)
     if (m_pTrayIcon) {
         m_pTrayIcon->setToolTip("InputServer: " + status);
     }
+    updateTrayMenu();
 }
 
 void MainWindow::createTrayIcon()
 {
+    // One quick-access menu, identical on Windows (tray) and macOS (menu bar):
+    // status, start/stop, role, then the windows and quit.
     m_pTrayIconMenu = new QMenu(this);
 
-    m_pTrayIconMenu->addAction(ui_->m_pActionStartCmdApp);
-    m_pTrayIconMenu->addAction(ui_->m_pActionStopCmdApp);
-    m_pTrayIconMenu->addAction(ui_->m_pActionShowLog);
+    tray_status_ = m_pTrayIconMenu->addAction(QString());
+    tray_status_->setEnabled(false);
     m_pTrayIconMenu->addSeparator();
 
-    m_pTrayIconMenu->addAction(ui_->m_pActionMinimize);
-    m_pTrayIconMenu->addAction(ui_->m_pActionRestore);
+    tray_toggle_ = m_pTrayIconMenu->addAction(QString());
+    connect(tray_toggle_, &QAction::triggered, this, [this] {
+        if (connection_state() == AppConnectionState::DISCONNECTED) {
+            start_cmd_app();
+        } else {
+            stop_cmd_app();
+        }
+    });
+
+    tray_role_menu_ = m_pTrayIconMenu->addMenu(QString());
+    auto* roles = new QActionGroup(tray_role_menu_);
+    tray_role_server_ = tray_role_menu_->addAction(QString());
+    tray_role_client_ = tray_role_menu_->addAction(QString());
+    for (QAction* role : {tray_role_server_, tray_role_client_}) {
+        role->setCheckable(true);
+        roles->addAction(role);
+    }
+    connect(tray_role_server_, &QAction::triggered, this, [this] {
+        setServerMode(true);
+        updateRoleView();
+    });
+    connect(tray_role_client_, &QAction::triggered, this, [this] {
+        setServerMode(false);
+        updateRoleView();
+    });
+
+    tray_arrange_ = m_pTrayIconMenu->addAction(QString());
+    connect(tray_arrange_, &QAction::triggered, this, [this] { showConfigureServer(); });
     m_pTrayIconMenu->addSeparator();
-    m_pTrayIconMenu->addAction(ui_->m_pActionQuit);
+
+    tray_open_ = m_pTrayIconMenu->addAction(QString());
+    connect(tray_open_, &QAction::triggered, this, [this] {
+        showNormal();
+        raise();
+        activateWindow();
+    });
+    tray_log_ = m_pTrayIconMenu->addAction(QString());
+    connect(tray_log_, &QAction::triggered, ui_->m_pActionShowLog, &QAction::trigger);
+    tray_settings_ = m_pTrayIconMenu->addAction(QString());
+    connect(tray_settings_, &QAction::triggered, ui_->m_pActionSettings, &QAction::trigger);
+    m_pTrayIconMenu->addSeparator();
+
+    tray_quit_ = m_pTrayIconMenu->addAction(QString());
+    connect(tray_quit_, &QAction::triggered, ui_->m_pActionQuit, &QAction::trigger);
 
     m_pTrayIcon = new QSystemTrayIcon(this);
     m_pTrayIcon->setContextMenu(m_pTrayIconMenu);
@@ -272,8 +315,39 @@ void MainWindow::createTrayIcon()
     connect(m_pTrayIcon, &QSystemTrayIcon::activated, this, &MainWindow::trayActivated);
 
     set_icon(AppConnectionState::DISCONNECTED);
+    updateTrayMenu();
 
     m_pTrayIcon->show();
+}
+
+void MainWindow::updateTrayMenu()
+{
+    if (!m_pTrayIconMenu) {
+        return;
+    }
+
+    const bool server = ui_->m_pGroupServer->isChecked();
+    const bool active = connection_state() != AppConnectionState::DISCONNECTED;
+
+    tray_status_->setText(QStringLiteral("InputServer — %1 · %2")
+                              .arg(ui_->m_pStatusLabel->text(),
+                                   server ? tr("Server") : tr("Client")));
+    tray_toggle_->setText(active ? tr("Stop") : tr("Start"));
+
+    tray_role_menu_->setTitle(tr("Role"));
+    // Same rule as the role switch in the window: no change while running.
+    tray_role_menu_->setEnabled(!active);
+    tray_role_server_->setText(tr("Control other computers"));
+    tray_role_client_->setText(tr("Be controlled"));
+    tray_role_server_->setChecked(server);
+    tray_role_client_->setChecked(!server);
+
+    tray_arrange_->setText(tr("Arrange screens..."));
+    tray_arrange_->setVisible(server);
+    tray_open_->setText(tr("Open InputServer"));
+    tray_log_->setText(tr("Show log"));
+    tray_settings_->setText(tr("Settings..."));
+    tray_quit_->setText(tr("Quit"));
 }
 
 void MainWindow::retranslateMenuBar()
@@ -380,17 +454,19 @@ void MainWindow::set_icon(AppConnectionState state)
 
 void MainWindow::trayActivated(QSystemTrayIcon::ActivationReason reason)
 {
-    if (reason == QSystemTrayIcon::DoubleClick)
-    {
-        if (isVisible())
-        {
-            hide();
-        }
-        else
-        {
-            showNormal();
-            activateWindow();
-        }
+    // macOS opens the menu on click by itself; on Windows a left click only
+    // reports Trigger, so open the same menu there to behave alike.
+#if !defined(Q_OS_MAC)
+    if (reason == QSystemTrayIcon::Trigger && m_pTrayIconMenu) {
+        updateTrayMenu();
+        m_pTrayIconMenu->popup(QCursor::pos());
+        return;
+    }
+#endif
+    if (reason == QSystemTrayIcon::DoubleClick) {
+        showNormal();
+        raise();
+        activateWindow();
     }
 }
 
@@ -1077,6 +1153,7 @@ void MainWindow::set_connection_state(AppConnectionState state)
 
     connection_state_ = state;
     updateClientForm();
+    updateTrayMenu();
 }
 
 void MainWindow::setVisible(bool visible)
@@ -1160,6 +1237,7 @@ void MainWindow::changeEvent(QEvent* event)
             setWindowTitle("InputServer");
             ui_->m_pActionQuit->setText(tr("Stop and quit InputServer"));
             retranslateMenuBar();
+            updateTrayMenu();
 
             proofreadInfo();
 
@@ -1330,6 +1408,7 @@ void MainWindow::updateRoleView()
     ui_->buttonRoleServer->setChecked(server);
     ui_->buttonRoleClient->setChecked(!server);
     updateNetworkWarning();
+    updateTrayMenu();
 }
 
 void MainWindow::updateNetworkWarning()

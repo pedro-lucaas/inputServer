@@ -255,12 +255,13 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     </message>
     <message>
         <location line="+54"/>
-        <location filename="../../src/MainWindow.cpp" line="+1014"/>
+        <location filename="../../src/MainWindow.cpp" line="+1090"/>
         <source>Stopped</source>
         <translation>Parado</translation>
     </message>
     <message>
         <location line="+30"/>
+        <location filename="../../src/MainWindow.cpp" line="-756"/>
         <source>Control other computers</source>
         <translation>Controlar outros computadores</translation>
     </message>
@@ -271,6 +272,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     </message>
     <message>
         <location line="+13"/>
+        <location filename="../../src/MainWindow.cpp" line="+1"/>
         <source>Be controlled</source>
         <translation>Ser controlado</translation>
     </message>
@@ -356,7 +358,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     </message>
     <message>
         <location line="+5"/>
-        <location filename="../../src/MainWindow.cpp" line="+296"/>
+        <location filename="../../src/MainWindow.cpp" line="+1054"/>
         <source>No server selected</source>
         <translation type="unfinished"></translation>
     </message>
@@ -413,7 +415,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     <message>
         <location line="+10"/>
         <location line="+41"/>
-        <location filename="../../src/MainWindow.cpp" line="-335"/>
+        <location filename="../../src/MainWindow.cpp" line="-338"/>
         <source>&amp;Start</source>
         <translation>&amp;Iniciar</translation>
     </message>
@@ -429,6 +431,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     </message>
     <message>
         <location line="+3"/>
+        <location filename="../../src/MainWindow.cpp" line="-707"/>
         <source>Quit</source>
         <translation>Sair</translation>
     </message>
@@ -444,6 +447,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     </message>
     <message>
         <location line="+3"/>
+        <location filename="../../src/MainWindow.cpp" line="-15"/>
         <source>Stop</source>
         <translation>Parar</translation>
     </message>
@@ -498,7 +502,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <translation>Mostrar log</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="-696"/>
+        <location filename="../../src/MainWindow.cpp" line="+24"/>
         <source>&amp;File</source>
         <translation>Arquivo</translation>
     </message>
@@ -522,13 +526,53 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <translation type="vanished">&lt;p&gt;A sua versão do InputServer está desatualizada. Versão &lt;b&gt;%1&lt;/b&gt; está disponível para &lt;a href=&quot;%2&quot;&gt;download&lt;/a&gt;.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location line="-137"/>
-        <location line="+967"/>
+        <location line="-210"/>
+        <location line="+1043"/>
         <source>Stop and quit InputServer</source>
         <translation>Parar e sair do InputServer</translation>
     </message>
     <message>
-        <location line="-831"/>
+        <location line="-856"/>
+        <source>Server</source>
+        <translation>Servidor</translation>
+    </message>
+    <message>
+        <location line="+0"/>
+        <source>Client</source>
+        <translation>Cliente</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Start</source>
+        <translation>Iniciar</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Role</source>
+        <translation>Função</translation>
+    </message>
+    <message>
+        <location line="+8"/>
+        <source>Arrange screens...</source>
+        <translation>Organizar telas...</translation>
+    </message>
+    <message>
+        <location line="+2"/>
+        <source>Open InputServer</source>
+        <translation>Abrir InputServer</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Show log</source>
+        <translation>Mostrar log</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Settings...</source>
+        <translation>Configurações...</translation>
+    </message>
+    <message>
+        <location line="+7"/>
         <source>&amp;InputServer</source>
         <translation>&amp;InputServer</translation>
     </message>
@@ -537,7 +581,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <translation type="vanished">O InputServer está conectado. Você pode fechar esta janela; ele continua conectado em segundo plano.</translation>
     </message>
     <message>
-        <location line="+424"/>
+        <location line="+426"/>
         <source>Program can not be started</source>
         <translation>Programa não pode ser iniciado</translation>
     </message>
@@ -644,7 +688,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <translation>Iniciando...</translation>
     </message>
     <message>
-        <location line="+150"/>
+        <location line="+152"/>
         <source>automatic discovery unavailable: %1</source>
         <translation>descoberta automática indisponível: %1</translation>
     </message>
@@ -664,7 +708,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <translation>cliente encontrado na rede: %1</translation>
     </message>
     <message>
-        <location line="+77"/>
+        <location line="+78"/>
         <source>Windows treats the network &lt;b&gt;%1&lt;/b&gt; as &lt;b&gt;public&lt;/b&gt; and blocks other computers from connecting to this server. &lt;a href=&quot;settings&quot;&gt;Change it to private&lt;/a&gt; in the Windows settings.</source>
         <translation>O Windows considera a rede &lt;b&gt;%1&lt;/b&gt; como &lt;b&gt;pública&lt;/b&gt; e bloqueia a conexão de outros computadores a este servidor. &lt;a href=&quot;settings&quot;&gt;Mude para privada&lt;/a&gt; nas configurações do Windows.</translation>
     </message>
@@ -696,7 +740,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <translation type="vanished">InputServer não esta rodando.</translation>
     </message>
     <message>
-        <location line="-383"/>
+        <location line="-385"/>
         <source>Unknown</source>
         <translation>Desconhecido</translation>
     </message>
@@ -706,7 +750,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <translation>InputServer</translation>
     </message>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="+331"/>
+        <location filename="../../src/MainWindow.cpp" line="+333"/>
         <source>Browse for a InputServer config file</source>
         <translation>Selecionar um arquivo de configuração InputServer</translation>
     </message>
@@ -875,7 +919,7 @@ To automatically trust this fingerprint for future connections, click Yes. To re
 <context>
     <name>QObject</name>
     <message>
-        <location filename="../../src/MainWindow.cpp" line="-1360"/>
+        <location filename="../../src/MainWindow.cpp" line="-1438"/>
         <source>All files (*.*)</source>
         <translation>Todos os arquivos (*.*)</translation>
     </message>

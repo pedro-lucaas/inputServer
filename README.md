@@ -225,7 +225,8 @@ Pronto: leve o mouse até a borda configurada e ele passa para o outro computado
 ## Uso no dia a dia
 
 - **Iniciar/Parar:** botão principal da janela. Parar funciona também durante a conexão e cancela reconexões pendentes.
-- **Bandeja do sistema:** fechar a janela pode manter o InputServer rodando na bandeja (configurável). Use **Sair** para encerrar tudo.
+- **Ícone de acesso rápido:** o InputServer fica num ícone na bandeja do Windows (perto do relógio) ou na barra de menus do Mac. Um clique abre o mesmo menu nos dois sistemas: estado atual, **Iniciar/Parar**, **Função** (controlar outros computadores ou ser controlado), **Organizar telas…**, **Abrir InputServer**, **Mostrar log**, **Configurações…** e **Sair**. Fechar a janela mantém o app rodando no ícone; use **Sair** para encerrar tudo.
+  > No Windows 11 o ícone pode ficar escondido na setinha **^** ao lado do relógio. Arraste-o para a barra para deixá-lo sempre visível.
 - **Linha de comando (Windows):** controle a instância já aberta com
   `InputServer.exe --start`, `InputServer.exe --stop` e `InputServer.exe --quit`.
 - **Iniciar com o sistema:** ative em *Editar → Configurações*.
