@@ -62,7 +62,7 @@ SetupWizard::~SetupWizard() = default;
 bool SetupWizard::validateCurrentPage()
 {
     QMessageBox message;
-    message.setWindowTitle(tr("Setup InputLeap"));
+    message.setWindowTitle(tr("Setup InputServer"));
     message.setIcon(QMessageBox::Information);
 
     if (currentPage() == ui_->m_pNodePage)
@@ -126,7 +126,7 @@ void SetupWizard::accept()
 
     if (m_StartMain)
     {
-        m_MainWindow.updateZeroconfService();
+        m_MainWindow.updateDiscovery();
         m_MainWindow.open();
     }
 }

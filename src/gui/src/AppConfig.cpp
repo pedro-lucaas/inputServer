@@ -23,13 +23,13 @@
 #include <QtNetwork>
 
 #if defined(Q_OS_WIN)
-const char AppConfig::server_name_[] = "ponte-server.exe";
-const char AppConfig::client_name_[] = "ponte-client.exe";
+const char AppConfig::server_name_[] = "inputserver-server.exe";
+const char AppConfig::client_name_[] = "inputserver-client.exe";
 const char AppConfig::log_dir_[] = "log/";
 #define DEFAULT_PROCESS_MODE Desktop
 #else
-const char AppConfig::server_name_[] = "input-leaps";
-const char AppConfig::client_name_[] = "input-leapc";
+const char AppConfig::server_name_[] = "inputserver-server";
+const char AppConfig::client_name_[] = "inputserver-client";
 const char AppConfig::log_dir_[] = "/var/log/";
 #define DEFAULT_PROCESS_MODE Desktop
 #endif
@@ -145,7 +145,7 @@ void AppConfig::loadSettings()
     m_Interface = settings().value("interface").toString();
     m_LogLevel = settings().value("logLevel", 3).toInt(); // level 3: INFO
     m_LogToFile = settings().value("logToFile", false).toBool();
-    m_LogFilename = settings().value("logFilename", log_dir() + "input-leap.log").toString();
+    m_LogFilename = settings().value("logFilename", log_dir() + "inputserver.log").toString();
     m_WizardLastRun = settings().value("wizardLastRun", 0).toInt();
     m_Language = settings().value("language", QLocale::system().name()).toString();
     m_StartedBefore = settings().value("startedBefore", false).toBool();

@@ -1,0 +1,68 @@
+#define MyAppName "InputServer"
+#define MyAppVersion "@INPUTLEAP_VERSION_MAJOR@.@INPUTLEAP_VERSION_MINOR@.@INPUTLEAP_VERSION_PATCH@.@INPUTLEAP_BUILD_NUMBER@"
+#define MyAppTextVersion "@INPUTLEAP_VERSION_MAJOR@.@INPUTLEAP_VERSION_MINOR@.@INPUTLEAP_VERSION_PATCH@"
+#define MyAppPublisher "InputServer"
+#define MyAppURL "https://github.com/pedro-lucaas/inputServer"
+#define MyAppExeName "InputServer.exe"
+#define MyAppListenerDesc "InputServer"
+#define MyAppDiscoveryDesc "InputServer (descoberta)"
+
+[Setup]
+; Never change AppId: updates find the existing installation through it.
+AppId={{6B0F3E2A-8C1D-4E57-9A3B-2F7D5C9E1A40}
+AppName={#MyAppName}
+AppVersion={#MyAppTextVersion}
+AppVerName={#MyAppName} {#MyAppTextVersion}
+AppPublisher={#MyAppPublisher}
+AppPublisherURL={#MyAppURL}
+AppSupportURL={#MyAppURL}
+AppUpdatesURL={#MyAppURL}
+DefaultDirName={autopf}\{#MyAppName}
+DisableProgramGroupPage=yes
+DisableDirPage=auto
+UsePreviousAppDir=yes
+LicenseFile=@CMAKE_CURRENT_SOURCE_DIR@/res/License.rtf
+OutputDir=@CMAKE_BINARY_DIR@/installer-inno/bin
+OutputBaseFilename=InputServerSetup-{#MyAppTextVersion}
+SetupIconFile=@CMAKE_CURRENT_SOURCE_DIR@/res/inputserver.ico
+VersionInfoProductTextVersion={#MyAppTextVersion}
+VersionInfoProductVersion={#MyAppVersion}
+VersionInfoTextVersion={#MyAppTextVersion}
+VersionInfoVersion={#MyAppVersion}
+Compression=lzma2
+SolidCompression=yes
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
+UninstallDisplayIcon={app}\{#MyAppExeName}
+; An update closes the running app and replaces the files; the postinstall
+; entry below also runs in silent mode, which restarts the app after an update.
+CloseApplications=force
+RestartApplications=no
+
+[Languages]
+Name: "ptbr"; MessagesFile: "compiler:Languages\BrazilianPortuguese.isl"
+Name: "en"; MessagesFile: "compiler:Default.isl"
+
+[Tasks]
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+
+[Files]
+Source: "@CMAKE_INSTALL_PREFIX@/*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Icons]
+Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+
+[Run]
+; Remove before adding so reinstalls and updates do not duplicate the rule.
+Filename: {sys}\netsh.exe; Parameters: "advfirewall firewall delete rule name=""{#MyAppListenerDesc}"""; Flags: runhidden
+Filename: {sys}\netsh.exe; Parameters: "advfirewall firewall add rule name=""{#MyAppListenerDesc}"" program=""{app}\inputserver-server.exe"" protocol=TCP dir=in localport=24800 action=allow profile=private"; Flags: runhidden
+; Automatic discovery: clients ask on UDP 24801, the GUI of the server answers.
+Filename: {sys}\netsh.exe; Parameters: "advfirewall firewall delete rule name=""{#MyAppDiscoveryDesc}"""; Flags: runhidden
+Filename: {sys}\netsh.exe; Parameters: "advfirewall firewall add rule name=""{#MyAppDiscoveryDesc}"" program=""{app}\{#MyAppExeName}"" protocol=UDP dir=in localport=24801 action=allow profile=private"; Flags: runhidden
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: nowait postinstall
+
+[UninstallRun]
+Filename: "{app}\{#MyAppExeName}"; Parameters: "--quit"; Flags: runhidden; RunOnceId: "QuitApp"
+Filename: {sys}\netsh.exe; Parameters: "advfirewall firewall delete rule name=""{#MyAppListenerDesc}"""; Flags: runhidden; RunOnceId: "DelFirewall"
+Filename: {sys}\netsh.exe; Parameters: "advfirewall firewall delete rule name=""{#MyAppDiscoveryDesc}"""; Flags: runhidden; RunOnceId: "DelDiscovery"

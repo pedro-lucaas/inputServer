@@ -26,8 +26,6 @@ set(GUI_SOURCE_FILES
     src/AppConfig.cpp
     src/AppLocale.cpp
     src/BaseConfig.cpp
-    src/CommandProcess.cpp
-    src/DataDownloader.cpp
     src/FingerprintAcceptDialog.cpp
     src/HotkeyDialog.cpp
     src/IpcClient.cpp
@@ -50,11 +48,7 @@ set(GUI_SOURCE_FILES
     src/SetupWizard.cpp
     src/SslCertificate.cpp
     src/TrashScreenWidget.cpp
-    src/ZeroconfBrowser.cpp
-    src/ZeroconfRegister.cpp
-    src/ZeroconfServer.cpp
-    src/ZeroconfService.cpp
-    src/ZeroconfThread.cpp
+    src/UdpDiscovery.cpp
 )
 
 set(GUI_HEADER_FILES
@@ -65,8 +59,6 @@ set(GUI_HEADER_FILES
     src/AppConnectionState.h
     src/AppLocale.h
     src/BaseConfig.h
-    src/CommandProcess.h
-    src/DataDownloader.h
     src/ElevateMode.h
     src/HotkeyDialog.h
     src/IpcClient.h
@@ -89,12 +81,7 @@ set(GUI_HEADER_FILES
     src/SetupWizard.h
     src/SslCertificate.h
     src/TrashScreenWidget.h
-    src/ZeroconfBrowser.h
-    src/ZeroconfRecord.h
-    src/ZeroconfRegister.h
-    src/ZeroconfServer.h
-    src/ZeroconfService.h
-    src/ZeroconfThread.h
+    src/UdpDiscovery.h
 )
 
 set(GUI_UI_FILES
@@ -195,27 +182,20 @@ target_link_libraries(input-leap
 )
 
 target_link_libraries(input-leap OpenSSL::SSL OpenSSL::Crypto)
-if(WIN32)
-    set_target_properties(input-leap PROPERTIES OUTPUT_NAME "Ponte")
-endif()
+set_target_properties(input-leap PROPERTIES OUTPUT_NAME "InputServer")
 
 target_compile_definitions (input-leap PRIVATE -DINPUTLEAP_VERSION_STAGE="${INPUTLEAP_VERSION_STAGE}")
 target_compile_definitions (input-leap PRIVATE -DINPUTLEAP_REVISION="${INPUTLEAP_REVISION}")
 
 if (BUILD_MSWINDOWS)
-    include_directories ($ENV{BONJOUR_SDK_HOME}/Include)
-    find_library (DNSSD_LIB dnssd.lib
-                  HINTS ENV BONJOUR_SDK_HOME
-                  PATH_SUFFIXES "Lib/x64")
     set_target_properties (input-leap PROPERTIES LINK_FLAGS "/NODEFAULTLIB:LIBCMT")
-    target_link_libraries (input-leap ${DNSSD_LIB})
 endif()
 if (BUILD_CARBON)
     find_library(APPSERVICES_LIB ApplicationServices)
     target_link_libraries(input-leap ${APPSERVICES_LIB})
 endif()
 if (BUILD_XWINDOWS)
-    target_link_libraries (input-leap dns_sd X11 Threads::Threads)
+    target_link_libraries (input-leap X11 Threads::Threads)
 endif()
 
 target_link_libraries (input-leap common)
@@ -249,6 +229,8 @@ if(INPUTLEAP_BUILD_TESTS)
     set(GUI_TEST_SOURCE_FILES
         test/KeySequenceTests.cpp
         test/HotkeyTests.cpp
+        test/UdpDiscoveryTests.cpp
+        src/UdpDiscovery.cpp
         test/main.cpp
     )
 

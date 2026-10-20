@@ -38,8 +38,7 @@ const fs::path& DataDirectories::profile()
 {
     if (_profile.empty()) {
         auto basedir = known_folder_path(FOLDERID_LocalAppData);
-        _profile = basedir / "InputLeap";
-        maybe_copy_old_profile(basedir / "barrier", _profile);
+        _profile = basedir / "InputServer";
     }
     return _profile;
 }
@@ -52,7 +51,7 @@ const fs::path& DataDirectories::profile(const fs::path& path)
 const fs::path& DataDirectories::global()
 {
     if (_global.empty())
-        _global = known_folder_path(FOLDERID_ProgramData) / "InputLeap";
+        _global = known_folder_path(FOLDERID_ProgramData) / "InputServer";
     return _global;
 }
 const fs::path& DataDirectories::global(const fs::path& path)

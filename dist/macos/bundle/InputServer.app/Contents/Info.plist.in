@@ -1,0 +1,37 @@
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>English</string>
+    <key>CFBundleDisplayName</key>
+    <string>InputServer</string>
+    <key>CFBundleExecutable</key>
+    <string>InputServer</string>
+    <key>CFBundleIconFile</key>
+    <string>InputServer.icns</string>
+    <key>CFBundleIdentifier</key>
+    <string>io.github.pedro-lucaas.InputServer</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>InputServer</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleSignature</key>
+    <string>????</string>
+    <key>CFBundleShortVersionString</key>
+    <string>@INPUTLEAP_VERSION@</string>
+    <key>CFBundleVersion</key>
+    <string>@INPUTLEAP_VERSION@</string>
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+    <key>NSHighResolutionCapable</key>
+    <string>True</string>
+    <key>NSHumanReadableCopyright</key>
+    <string>GPLv2</string>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>O InputServer usa a rede local para encontrar e conectar os outros computadores.</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>11.0</string>
+  </dict>
+</plist>

@@ -113,7 +113,7 @@ void
 ClientApp::help()
 {
     std::ostringstream buffer;
-    buffer << "Start the InputLeap client and connect to a remote server component.\n"
+    buffer << "Start the InputServer client and connect to a remote server component.\n"
            << "\n"
            << "Usage: " << args().m_exename << " [--yscroll <delta>]"
 #ifdef WINAPI_XWINDOWS
@@ -155,9 +155,9 @@ const char*
 ClientApp::daemonName() const
 {
 #if SYSAPI_WIN32
-    return "InputLeap Client";
+    return "InputServer Client";
 #elif SYSAPI_UNIX
-    return "input-leapc";
+    return "inputserver-client";
 #endif
 }
 

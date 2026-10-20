@@ -194,9 +194,16 @@ void generate_pem_self_signed_cert(const std::string& path)
     X509_gmtime_adj(X509_get_notAfter(cert), expiration_days * 24 * 3600);
     X509_set_pubkey(cert, private_key);
 
-    auto* name = X509_get_subject_name(cert);
+    // OpenSSL 4 returns the subject as const, so build the name separately;
+    // X509_set_*_name copy it.
+    auto* name = X509_NAME_new();
+    if (!name) {
+        throw std::runtime_error("Could not allocate certificate name");
+    }
+    auto name_free = finally([name]() { X509_NAME_free(name); });
     X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC,
-                               reinterpret_cast<const unsigned char *>("InputLeap"), -1, -1, 0);
+                               reinterpret_cast<const unsigned char *>("InputServer"), -1, -1, 0);
+    X509_set_subject_name(cert, name);
     X509_set_issuer_name(cert, name);
 
     X509_sign(cert, private_key, EVP_sha256());

@@ -3,8 +3,8 @@
     <name>AboutDialog</name>
     <message>
         <location filename="res/AboutDialog.ui" line="38"/>
-        <source>About InputLeap</source>
-        <translation type="finished">O InputLeap</translation>
+        <source>About InputServer</source>
+        <translation type="finished">O InputServer</translation>
     </message>
     <message utf8="true">
         <location filename="res/AboutDialog.ui" line="53"/>
@@ -12,18 +12,18 @@
 Keyboard and mouse sharing application. Cross platform and open source.&lt;br /&gt;&lt;br /&gt;
 Copyright © 2012-2016 Symless Ltd.&lt;br /&gt;
 Copyright © 2002-2012 Chris Schoeneman, Nick Bolton, Volker Lanz.&lt;br /&gt;&lt;br /&gt;
-InputLeap is released under the GNU General Public License (GPLv2).&lt;br /&gt;&lt;br /&gt;
-InputLeap is based on CosmoSynergy by Richard Lee and Adam Feder.&lt;br /&gt;
-The InputLeap GUI is based on QSynergy by Volker Lanz.&lt;br /&gt;&lt;br /&gt;
+InputServer is released under the GNU General Public License (GPLv2).&lt;br /&gt;&lt;br /&gt;
+InputServer is based on CosmoSynergy by Richard Lee and Adam Feder.&lt;br /&gt;
+The InputServer GUI is based on QSynergy by Volker Lanz.&lt;br /&gt;&lt;br /&gt;
 Visit our website for help and info (symless.com).
 &lt;/p&gt;</source>
         <oldsource>&lt;p&gt;
 Keyboard and mouse sharing application. Cross platform and open source.&lt;br /&gt;&lt;br /&gt;
 Copyright © 2012-2016 Symless Ltd.&lt;br /&gt;
 Copyright © 2002-2012 Chris Schoeneman, Nick Bolton, Volker Lanz.&lt;br /&gt;&lt;br /&gt;
-InputLeap is released under the GNU General Public License (GPLv2).&lt;br /&gt;&lt;br /&gt;
-InputLeap is based on CosmoSynergy by Richard Lee and Adam Feder.&lt;br /&gt;
-The InputLeap GUI is based on QSynergy by Volker Lanz.&lt;br /&gt;&lt;br /&gt;
+InputServer is released under the GNU General Public License (GPLv2).&lt;br /&gt;&lt;br /&gt;
+InputServer is based on CosmoSynergy by Richard Lee and Adam Feder.&lt;br /&gt;
+The InputServer GUI is based on QSynergy by Volker Lanz.&lt;br /&gt;&lt;br /&gt;
 Visit our website for help and info (symless.com).
 &lt;/p&gt;</oldsource>
         <translation type="unfinished"></translation>
@@ -202,9 +202,9 @@ Visit our website for help and info (symless.com).
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="364"/>
-        <source>&lt;p&gt;Your version of InputLeap is out of date. Version &lt;b&gt;%1&lt;/b&gt; is now available to &lt;a href=&quot;%2&quot;&gt;download&lt;/a&gt;.&lt;/p&gt;</source>
+        <source>&lt;p&gt;Your version of InputServer is out of date. Version &lt;b&gt;%1&lt;/b&gt; is now available to &lt;a href=&quot;%2&quot;&gt;download&lt;/a&gt;.&lt;/p&gt;</source>
         <oldsource>&lt;p&gt;Version %1 is now available, &lt;a href=&quot;%2&quot;&gt;visit website&lt;/a&gt;.&lt;/p&gt;</oldsource>
-        <translation type="finished">&lt;p&gt;Používáte starou verzi aplikace InputLeap. Ke &lt;a href=&quot;%2&quot;&gt;stažení&lt;/a&gt; je nyní již verze &lt;b&gt;%1&lt;/b&gt;.&lt;/p&gt;</translation>
+        <translation type="finished">&lt;p&gt;Používáte starou verzi aplikace InputServer. Ke &lt;a href=&quot;%2&quot;&gt;stažení&lt;/a&gt; je nyní již verze &lt;b&gt;%1&lt;/b&gt;.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="577"/>
@@ -218,13 +218,13 @@ Visit our website for help and info (symless.com).
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="596"/>
-        <source>InputLeap client not found</source>
-        <translation type="finished">InputLeap klient nebyl nalezen</translation>
+        <source>InputServer client not found</source>
+        <translation type="finished">InputServer klient nebyl nalezen</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="597"/>
-        <source>The executable for the InputLeap client does not exist.</source>
-        <translation type="finished">Spustitelný soubor s programem InputLeap klienta neexistuje.</translation>
+        <source>The executable for the InputServer client does not exist.</source>
+        <translation type="finished">Spustitelný soubor s programem InputServer klienta neexistuje.</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="625"/>
@@ -233,8 +233,8 @@ Visit our website for help and info (symless.com).
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="626"/>
-        <source>Please fill in a hostname for the InputLeap client to connect to.</source>
-        <translation type="finished">Vyplňte adresu cílového počítače ke kterému se InputLeap klient má připojit.</translation>
+        <source>Please fill in a hostname for the InputServer client to connect to.</source>
+        <translation type="finished">Vyplňte adresu cílového počítače ke kterému se InputServer klient má připojit.</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="646"/>
@@ -243,8 +243,8 @@ Visit our website for help and info (symless.com).
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="646"/>
-        <source>The temporary configuration file required to start InputLeap can not be written.</source>
-        <translation type="finished">Do dočasného souboru s nastaveními, potřebného pro spuštění InputLeap, nelze zapisovat.</translation>
+        <source>The temporary configuration file required to start InputServer can not be written.</source>
+        <translation type="finished">Do dočasného souboru s nastaveními, potřebného pro spuštění InputServer, nelze zapisovat.</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="659"/>
@@ -253,28 +253,28 @@ Visit our website for help and info (symless.com).
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="660"/>
-        <source>You have not filled in a valid configuration file for the InputLeap server. Do you want to browse for the configuration file now?</source>
-        <translation type="finished">Nevyplnili jste platný soubor s nastaveními pro InputLeap server. Chcete nyní určit umístění souboru s nastaveními?</translation>
+        <source>You have not filled in a valid configuration file for the InputServer server. Do you want to browse for the configuration file now?</source>
+        <translation type="finished">Nevyplnili jste platný soubor s nastaveními pro InputServer server. Chcete nyní určit umístění souboru s nastaveními?</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="688"/>
-        <source>InputLeap server not found</source>
-        <translation type="finished">InputLeap server nebyl nalezen</translation>
+        <source>InputServer server not found</source>
+        <translation type="finished">InputServer server nebyl nalezen</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="689"/>
-        <source>The executable for the InputLeap server does not exist.</source>
-        <translation type="finished">Spustitelný soubor s programem InputLeap serveru neexistuje.</translation>
+        <source>The executable for the InputServer server does not exist.</source>
+        <translation type="finished">Spustitelný soubor s programem InputServer serveru neexistuje.</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="764"/>
-        <source>InputLeap terminated with an error</source>
-        <translation type="finished">InputLeap bylo ukončeno s chybou</translation>
+        <source>InputServer terminated with an error</source>
+        <translation type="finished">InputServer bylo ukončeno s chybou</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="764"/>
-        <source>InputLeap terminated unexpectedly with an exit code of %1.&lt;br&gt;&lt;br&gt;Please see the log output for details.</source>
-        <translation type="finished">Neočekávané ukončení InputLeap. Běh skončil s kódem %1. &lt;br&gt;&lt;br&gt;Podrobnosti viz protokol.</translation>
+        <source>InputServer terminated unexpectedly with an exit code of %1.&lt;br&gt;&lt;br&gt;Please see the log output for details.</source>
+        <translation type="finished">Neočekávané ukončení InputServer. Běh skončil s kódem %1. &lt;br&gt;&lt;br&gt;Podrobnosti viz protokol.</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="783"/>
@@ -322,18 +322,18 @@ Do you want to install Bonjour?</source>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="815"/>
-        <source>InputLeap is starting.</source>
-        <translation type="finished">InputLeap se spouští.</translation>
+        <source>InputServer is starting.</source>
+        <translation type="finished">InputServer se spouští.</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="809"/>
-        <source>InputLeap is running.</source>
-        <translation type="finished">InputLeap je spuštěné.</translation>
+        <source>InputServer is running.</source>
+        <translation type="finished">InputServer je spuštěné.</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="819"/>
-        <source>InputLeap is not running.</source>
-        <translation type="finished">InputLeap není spuštěné.</translation>
+        <source>InputServer is not running.</source>
+        <translation type="finished">InputServer není spuštěné.</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="870"/>
@@ -344,17 +344,17 @@ Do you want to install Bonjour?</source>
         <location filename="src/MainWindow.cpp" line="1146"/>
         <location filename="src/MainWindow.cpp" line="1225"/>
         <location filename="src/MainWindow.cpp" line="1269"/>
-        <source>InputLeap</source>
-        <translation type="finished">InputLeap</translation>
+        <source>InputServer</source>
+        <translation type="finished">InputServer</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="987"/>
-        <source>Browse for a InputLeap config file</source>
-        <translation type="finished">Otevřít existující soubor s nastaveními pro InputLeap</translation>
+        <source>Browse for a InputServer config file</source>
+        <translation type="finished">Otevřít existující soubor s nastaveními pro InputServer</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="408"/>
-        <source>InputLeap is now connected, You can close the config window. InputLeap will remain connected in the background.</source>
+        <source>InputServer is now connected, You can close the config window. InputServer will remain connected in the background.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -393,8 +393,8 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     <name>MainWindowBase</name>
     <message>
         <location filename="res/MainWindowBase.ui" line="26"/>
-        <source>InputLeap</source>
-        <translation type="finished">InputLeap</translation>
+        <source>InputServer</source>
+        <translation type="finished">InputServer</translation>
     </message>
     <message>
         <location filename="res/MainWindowBase.ui" line="90"/>
@@ -479,8 +479,8 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     </message>
     <message>
         <location filename="res/MainWindowBase.ui" line="390"/>
-        <source>&amp;About InputLeap...</source>
-        <translation type="finished">&amp;O InputLeap…</translation>
+        <source>&amp;About InputServer...</source>
+        <translation type="finished">&amp;O InputServer…</translation>
     </message>
     <message>
         <location filename="res/MainWindowBase.ui" line="398"/>
@@ -599,8 +599,8 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     <name>PluginWizardPage</name>
     <message>
         <location filename="res/PluginWizardPageBase.ui" line="14"/>
-        <source>Setup InputLeap</source>
-        <translation type="finished">Instalovat InputLeap</translation>
+        <source>Setup InputServer</source>
+        <translation type="finished">Instalovat InputServer</translation>
     </message>
     <message>
         <location filename="res/PluginWizardPageBase.ui" line="101"/>
@@ -653,13 +653,13 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="60"/>
-        <source>InputLeap Configurations (*.sgc)</source>
-        <translation type="finished">Nastavení InputLeap (*.sgc)</translation>
+        <source>InputServer Configurations (*.sgc)</source>
+        <translation type="finished">Nastavení InputServer (*.sgc)</translation>
     </message>
     <message>
         <location filename="src/MainWindow.cpp" line="67"/>
-        <source>InputLeap Configurations (*.conf)</source>
-        <translation type="finished">Nastavení InputLeap (*.conf)</translation>
+        <source>InputServer Configurations (*.conf)</source>
+        <translation type="finished">Nastavení InputServer (*.conf)</translation>
     </message>
     <message>
         <location filename="src/main.cpp" line="119"/>
@@ -892,8 +892,8 @@ To automatically trust this fingerprint for future connections, click Yes. To re
     </message>
     <message>
         <location filename="res/ServerConfigDialogBase.ui" line="60"/>
-        <source>Configure the layout of your InputLeap server configuration.</source>
-        <translation type="finished">Nastavte rozložení svého nastavení serveru InputLeap.</translation>
+        <source>Configure the layout of your InputServer server configuration.</source>
+        <translation type="finished">Nastavte rozložení svého nastavení serveru InputServer.</translation>
     </message>
     <message>
         <location filename="res/ServerConfigDialogBase.ui" line="73"/>
@@ -1051,16 +1051,16 @@ Nastavení obrazovky upravíte dvojklikem na ni.</translation>
     </message>
     <message>
         <location filename="src/SettingsDialog.cpp" line="151"/>
-        <source>Elevate InputLeap</source>
-        <translation type="finished">Zvýšit stupeň oprávnění pro InputLeap</translation>
+        <source>Elevate InputServer</source>
+        <translation type="finished">Zvýšit stupeň oprávnění pro InputServer</translation>
     </message>
     <message>
         <location filename="src/SettingsDialog.cpp" line="152"/>
-        <source>Are you sure you want to Elevate InputLeap?
+        <source>Are you sure you want to Elevate InputServer?
 
-This allows InputLeap to interact with elevated processes and the UAC dialog, but can cause problems with non-elevated processes. Elevate InputLeap only if you really need to.</source>
-        <translation type="finished">Opravdu chcete zvýšit stupeň oprávnění pro InputLeap?
-Sice to InputLeap umožní pracovat s procesy, které mají také takový stupeň a s dialogem řízení uživatelských účtů (UAC), může ale působit problémy aplikacím s běžnými oprávněními. Tuto možnost byste tedy měli využít pouze pokud ji opravdu potřebujete.</translation>
+This allows InputServer to interact with elevated processes and the UAC dialog, but can cause problems with non-elevated processes. Elevate InputServer only if you really need to.</source>
+        <translation type="finished">Opravdu chcete zvýšit stupeň oprávnění pro InputServer?
+Sice to InputServer umožní pracovat s procesy, které mají také takový stupeň a s dialogem řízení uživatelských účtů (UAC), může ale působit problémy aplikacím s běžnými oprávněními. Tuto možnost byste tedy měli využít pouze pokud ji opravdu potřebujete.</translation>
     </message>
 </context>
 <context>
@@ -1175,8 +1175,8 @@ Sice to InputLeap umožní pracovat s procesy, které mají také takový stupe�
     <name>SetupWizard</name>
     <message>
         <location filename="src/SetupWizard.cpp" line="72"/>
-        <source>Setup InputLeap</source>
-        <translation type="finished">Instalovat InputLeap</translation>
+        <source>Setup InputServer</source>
+        <translation type="finished">Instalovat InputServer</translation>
     </message>
     <message>
         <location filename="src/SetupWizard.cpp" line="113"/>
@@ -1193,8 +1193,8 @@ Sice to InputLeap umožní pracovat s procesy, které mají také takový stupe�
     <name>SetupWizardBase</name>
     <message>
         <location filename="res/SetupWizardBase.ui" line="26"/>
-        <source>Setup InputLeap</source>
-        <translation type="finished">Instalovat InputLeap</translation>
+        <source>Setup InputServer</source>
+        <translation type="finished">Instalovat InputServer</translation>
     </message>
     <message>
         <location filename="res/SetupWizardBase.ui" line="30"/>
@@ -1203,13 +1203,13 @@ Sice to InputLeap umožní pracovat s procesy, které mají také takový stupe�
     </message>
     <message>
         <location filename="res/SetupWizardBase.ui" line="39"/>
-        <source>Thanks for installing InputLeap!</source>
-        <translation type="finished">Těší nás, že jste si nainstalovali InputLeap!</translation>
+        <source>Thanks for installing InputServer!</source>
+        <translation type="finished">Těší nás, že jste si nainstalovali InputServer!</translation>
     </message>
     <message>
         <location filename="res/SetupWizardBase.ui" line="114"/>
-        <source>InputLeap lets you easily share your mouse and keyboard between multiple computers on your desk, and it's Free and Open Source. Just move your mouse off the edge of one computer's screen on to another. You can even share all of your clipboards. All you need is a network connection. InputLeap is cross-platform (works on Windows, Mac OS X and Linux).</source>
-        <translation type="finished">InputLeap vám umožní snadno sdílet myš a klávesnici napříč vícero počítači na vašem stole. Aplikace je svobodná a s otevřeným zdrojovým kódem. Stačí jen přesunout kurzor myši mimo okraj obrazovky jednoho počítače na obrazovku dalšího. Mezi počítači můžete dokonce sdílet obsahy jejich schránek. Jediné, co je potřeba, je propojení sítí. InputLeap je multiplatformní (funguje na Windows, Mac OS X a GNU/Linux).</translation>
+        <source>InputServer lets you easily share your mouse and keyboard between multiple computers on your desk, and it's Free and Open Source. Just move your mouse off the edge of one computer's screen on to another. You can even share all of your clipboards. All you need is a network connection. InputServer is cross-platform (works on Windows, Mac OS X and Linux).</source>
+        <translation type="finished">InputServer vám umožní snadno sdílet myš a klávesnici napříč vícero počítači na vašem stole. Aplikace je svobodná a s otevřeným zdrojovým kódem. Stačí jen přesunout kurzor myši mimo okraj obrazovky jednoho počítače na obrazovku dalšího. Mezi počítači můžete dokonce sdílet obsahy jejich schránek. Jediné, co je potřeba, je propojení sítí. InputServer je multiplatformní (funguje na Windows, Mac OS X a GNU/Linux).</translation>
     </message>
     <message>
         <location filename="res/SetupWizardBase.ui" line="125"/>
@@ -1390,8 +1390,8 @@ Server response:
     </message>
     <message>
         <location filename="src/ZeroconfService.cpp" line="140"/>
-        <source>InputLeap</source>
-        <translation type="finished">InputLeap</translation>
+        <source>InputServer</source>
+        <translation type="finished">InputServer</translation>
     </message>
     <message>
         <location filename="src/ZeroconfService.cpp" line="141"/>

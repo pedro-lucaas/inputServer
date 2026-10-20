@@ -123,7 +123,7 @@ ServerApp::help()
                             inputleap::fs::u8path(CONFIG_NAME)).u8string();
 
     std::ostringstream buffer;
-    buffer << "Start the InputLeap server component. The server shares the keyboard &\n"
+    buffer << "Start the InputServer server component. The server shares the keyboard &\n"
            << "mouse of the local machine with the connected clients based on the\n"
            << "configuration file.\n"
            << "\n"
@@ -217,11 +217,6 @@ ServerApp::loadConfig()
                 inputleap::DataDirectories::profile(),
                 CONFIG_NAME,
                 false
-            },
-            {
-                inputleap::DataDirectories::profile(),
-                ".input-leap.conf", // used before 3.0.0
-                true
             },
             {
                 inputleap::DataDirectories::systemconfig(),
@@ -860,9 +855,9 @@ const char*
 ServerApp::daemonName() const
 {
 #if SYSAPI_WIN32
-    return "InputLeap Server";
+    return "InputServer Server";
 #elif SYSAPI_UNIX
-    return "input-leaps";
+    return "inputserver-server";
 #endif
 }
 

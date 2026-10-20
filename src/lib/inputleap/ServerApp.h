@@ -118,9 +118,9 @@ private:
 
 // configuration file name
 #if SYSAPI_WIN32
-#define CONFIG_NAME "input-leap.sgc"
+#define CONFIG_NAME "inputserver.sgc"
 #elif SYSAPI_UNIX
-#define CONFIG_NAME "input-leap.conf"
+#define CONFIG_NAME "inputserver.conf"
 #endif
 
 } // namespace inputleap

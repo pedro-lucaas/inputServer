@@ -24,12 +24,9 @@
 #include "AboutDialog.h"
 #include "ServerConfigDialog.h"
 #include "SettingsDialog.h"
-#include "ZeroconfService.h"
-#include "DataDownloader.h"
-#include "CommandProcess.h"
+#include "UdpDiscovery.h"
 #include "FingerprintAcceptDialog.h"
 #include "QUtility.h"
-#include "ProcessorArch.h"
 #include "SslCertificate.h"
 #include "base/String.h"
 #include "common/DataDirectories.h"
@@ -62,15 +59,11 @@ namespace {
 
 static const QString allFilesFilter(QObject::tr("All files (*.*)"));
 #if defined(Q_OS_WIN)
-static const char APP_CONFIG_NAME[] = "input-leap.sgc";
-static const QString APP_CONFIG_FILTER(QObject::tr("InputLeap Configurations (*.sgc)"));
-static QString bonjourBaseUrl = "http://binaries.symless.com/bonjour/";
-static const char bonjourFilename32[] = "Bonjour.msi";
-static const char bonjourFilename64[] = "Bonjour64.msi";
-static const char bonjourTargetFilename[] = "Bonjour.msi";
+static const char APP_CONFIG_NAME[] = "inputserver.sgc";
+static const QString APP_CONFIG_FILTER(QObject::tr("InputServer Configurations (*.sgc)"));
 #else
-static const char APP_CONFIG_NAME[] = "input-leap.conf";
-static const QString APP_CONFIG_FILTER(QObject::tr("InputLeap Configurations (*.conf)"));
+static const char APP_CONFIG_NAME[] = "inputserver.conf";
+static const QString APP_CONFIG_FILTER(QObject::tr("InputServer Configurations (*.conf)"));
 #endif
 static const QString APP_CONFIG_OPEN_FILTER(APP_CONFIG_FILTER + ";;" + allFilesFilter);
 static const QString APP_CONFIG_SAVE_FILTER(APP_CONFIG_FILTER);
@@ -80,18 +73,18 @@ const char* icon_file_for_connection_state(AppConnectionState state)
 #if defined(Q_OS_MAC)
     switch (state) {
         default:
-        case AppConnectionState::DISCONNECTED: return ":/res/icons/128x128/input-leap-disconnected-mask.png";
-        case AppConnectionState::CONNECTING:   return ":/res/icons/128x128/input-leap-disconnected-mask.png";
-        case AppConnectionState::CONNECTED:    return ":/res/icons/128x128/input-leap-connected-mask.png";
-        case AppConnectionState::TRANSFERRING: return ":/res/icons/128x128/input-leap-transfering-mask.png";
+        case AppConnectionState::DISCONNECTED: return ":/res/icons/128x128/inputserver-disconnected-mask.png";
+        case AppConnectionState::CONNECTING:   return ":/res/icons/128x128/inputserver-disconnected-mask.png";
+        case AppConnectionState::CONNECTED:    return ":/res/icons/128x128/inputserver-connected-mask.png";
+        case AppConnectionState::TRANSFERRING: return ":/res/icons/128x128/inputserver-transfering-mask.png";
     }
 #else
     switch (state) {
         default:
-        case AppConnectionState::DISCONNECTED: return ":/res/icons/128x128/input-leap-disconnected.png";
-        case AppConnectionState::CONNECTING:   return ":/res/icons/128x128/input-leap-disconnected.png";
-        case AppConnectionState::CONNECTED:    return ":/res/icons/128x128/input-leap-connected.png";
-        case AppConnectionState::TRANSFERRING: return ":/res/icons/128x128/input-leap-transfering.png";
+        case AppConnectionState::DISCONNECTED: return ":/res/icons/128x128/inputserver-disconnected.png";
+        case AppConnectionState::CONNECTING:   return ":/res/icons/128x128/inputserver-disconnected.png";
+        case AppConnectionState::CONNECTED:    return ":/res/icons/128x128/inputserver-connected.png";
+        case AppConnectionState::TRANSFERRING: return ":/res/icons/128x128/inputserver-transfering.png";
     }
 #endif
 }
@@ -100,14 +93,14 @@ const char* icon_name_for_connection_state(AppConnectionState state)
 {
     switch (state) {
         default:
-        case AppConnectionState::DISCONNECTED: return "input-leap-disconnected";
-        case AppConnectionState::CONNECTING: return "input-leap-disconnected";
-        case AppConnectionState::CONNECTED: return "input-leap-connected";
-        case AppConnectionState::TRANSFERRING: return "input-leap-transfering";
+        case AppConnectionState::DISCONNECTED: return "inputserver-disconnected";
+        case AppConnectionState::CONNECTING: return "inputserver-disconnected";
+        case AppConnectionState::CONNECTED: return "inputserver-connected";
+        case AppConnectionState::TRANSFERRING: return "inputserver-transfering";
     }
 }
 
-static const char* APP_LARGE_ICON = ":/res/icons/256x256/input-leap.png";
+static const char* APP_LARGE_ICON = ":/res/icons/256x256/inputserver.png";
 
 } // namespace
 
@@ -124,12 +117,6 @@ MainWindow::MainWindow(QSettings& settings, AppConfig& appConfig) :
     m_pMenuBar(nullptr),
     main_menu_(nullptr),
     m_pMenuHelp(nullptr),
-    m_pZeroconfService(nullptr),
-    m_pDataDownloader(nullptr),
-    m_DownloadMessageBox(nullptr),
-    m_pCancelButton(nullptr),
-    m_SuppressAutoConfigWarning(false),
-    m_BonjourInstall(nullptr),
     m_SuppressEmptyServerWarning(false),
     m_ExpectedRunningState(kStopped),
     m_pSslCertificate(nullptr),
@@ -143,8 +130,8 @@ MainWindow::MainWindow(QSettings& settings, AppConfig& appConfig) :
     setAttribute(Qt::WA_X11NetWmWindowTypeDialog, true);
 
     ui_->setupUi(this);
-    setWindowTitle("Ponte");
-    ui_->m_pActionQuit->setText(tr("Stop and quit Ponte"));
+    setWindowTitle("InputServer");
+    ui_->m_pActionQuit->setText(tr("Stop and quit InputServer"));
     setWindowIcon(QIcon(APP_LARGE_ICON));
     createMenuBar();
     loadSettings();
@@ -161,7 +148,7 @@ MainWindow::MainWindow(QSettings& settings, AppConfig& appConfig) :
     ui_->m_pLabelIpAddresses->setText(getIPAddresses());
 
 #if defined(Q_OS_WIN)
-    // Ponte owns the engine directly and never talks to the legacy daemon.
+    // InputServer owns the engine directly and never talks to the legacy daemon.
     if (appConfig.processMode() == Service) {
         connect(&m_IpcClient, &IpcClient::readLogLine, this, &MainWindow::appendLogRaw);
         connect(&m_IpcClient, &IpcClient::errorMessage, this, &MainWindow::appendLogError);
@@ -179,9 +166,7 @@ MainWindow::MainWindow(QSettings& settings, AppConfig& appConfig) :
     setMinimumSize(700, 0);
 #endif
 
-    m_SuppressAutoConfigWarning = true;
     ui_->m_pCheckBoxAutoConfig->setChecked(appConfig.autoConfig());
-    m_SuppressAutoConfigWarning = false;
 
     ui_->m_pComboServerList->hide();
     ui_->m_pLabelPadlock->hide();
@@ -214,9 +199,7 @@ MainWindow::~MainWindow()
 
     saveSettings();
 
-    delete m_pZeroconfService;
-    delete m_DownloadMessageBox;
-    delete m_BonjourInstall;
+    discovery_.reset();
     delete m_pSslCertificate;
 
     // LogWindow is created as a sibling of the MainWindow rather than a child
@@ -237,10 +220,6 @@ void MainWindow::open()
         showNormal();
     }
 
-    if (!appConfig().autoConfigPrompted()) {
-        promptAutoConfig();
-    }
-
     // only start if user has previously started. this stops the gui from
     // auto hiding before the user has configured InputLeap (which of course
     // confuses first time users, who think InputLeap has crashed).
@@ -253,9 +232,9 @@ void MainWindow::open()
 
 void MainWindow::setStatus(const QString &status)
 {
-    ui_->m_pStatusLabel->setText(QString(status).replace("InputLeap", "Ponte"));
+    ui_->m_pStatusLabel->setText(status);
     if (m_pTrayIcon) {
-        m_pTrayIcon->setToolTip("Ponte: " + QString(status).replace("InputLeap", "Ponte"));
+        m_pTrayIcon->setToolTip("InputServer: " + status);
     }
 }
 
@@ -275,7 +254,7 @@ void MainWindow::createTrayIcon()
 
     m_pTrayIcon = new QSystemTrayIcon(this);
     m_pTrayIcon->setContextMenu(m_pTrayIconMenu);
-    m_pTrayIcon->setToolTip("Ponte");
+    m_pTrayIcon->setToolTip("InputServer");
 
     connect(m_pTrayIcon, &QSystemTrayIcon::activated, this, &MainWindow::trayActivated);
 
@@ -287,7 +266,7 @@ void MainWindow::createTrayIcon()
 void MainWindow::retranslateMenuBar()
 {
 #ifndef Q_OS_DARWIN
-    main_menu_->setTitle(tr("&Ponte"));
+    main_menu_->setTitle(tr("&InputServer"));
     m_pMenuHelp->setTitle(tr("&Help"));
 #else
     m_pMenuHelp->setTitle(tr("&File"));
@@ -468,9 +447,9 @@ void MainWindow::checkConnected(const QString& line)
 
         if (!appConfig().startedBefore() && isVisible()) {
                 QMessageBox::information(
-                    this, "InputLeap",
-                    tr("InputLeap is now connected. You can close the "
-                    "config window and InputLeap will remain connected in "
+                    this, "InputServer",
+                    tr("InputServer is now connected. You can close the "
+                    "config window and InputServer will remain connected in "
                     "the background."));
 
             appConfig().setStartedBefore(true);
@@ -557,6 +536,7 @@ void MainWindow::proofreadInfo()
 
 void MainWindow::start_cmd_app()
 {
+    waiting_for_server_ = false;
     // Repeated Start signals must never replace the owned process pointer.
     if (cmd_app_process_ && cmd_app_process_->state() != QProcess::NotRunning) {
         return;
@@ -697,8 +677,8 @@ bool MainWindow::clientArgs(QStringList& args, QString& app)
     if (!QFile::exists(app))
     {
         show();
-        QMessageBox::warning(this, tr("InputLeap client not found"),
-                             tr("The executable for the InputLeap client does not exist."));
+        QMessageBox::warning(this, tr("InputServer client not found"),
+                             tr("The executable for the InputServer client does not exist."));
         return false;
     }
 
@@ -720,15 +700,24 @@ bool MainWindow::clientArgs(QStringList& args, QString& app)
     // use line edit host name if it is not empty
     if (ui_->m_pCheckBoxAutoConfig->isChecked()) {
         if (ui_->m_pComboServerList->count() != 0) {
-            QString serverIp = ui_->m_pComboServerList->currentText();
-            args << "[" + serverIp + "]:" + QString::number(appConfig().port());
-            return true;
+            // item data is {address, port} as announced by the server
+            const QStringList server = ui_->m_pComboServerList->currentData().toStringList();
+            if (server.size() == 2) {
+                args << "[" + server[0] + "]:" + server[1];
+                return true;
+            }
+        }
+        if (ui_->m_pLineEditHostname->text().isEmpty()) {
+            // Not an error: the client starts as soon as a server answers.
+            appendLogInfo(tr("waiting for a server on the network"));
+            waiting_for_server_ = true;
+            return false;
         }
     } else if (ui_->m_pLineEditHostname->text().isEmpty()) {
         show();
         if (!m_SuppressEmptyServerWarning) {
             QMessageBox::warning(this, tr("Hostname is empty"),
-                             tr("Please fill in a hostname for the InputLeap client to connect to."));
+                             tr("Please fill in a hostname for the InputServer client to connect to."));
         }
         return false;
     }
@@ -752,7 +741,7 @@ QString MainWindow::configFilename()
         if (!m_pTempConfigFile->open())
         {
             QMessageBox::critical(this, tr("Cannot write configuration file"),
-                                  tr("The temporary configuration file required to start InputLeap can not be written."));
+                                  tr("The temporary configuration file required to start InputServer can not be written."));
             return "";
         }
 
@@ -766,7 +755,7 @@ QString MainWindow::configFilename()
         if (!QFile::exists(ui_->m_pLineEditConfigFile->text()))
         {
             if (QMessageBox::warning(this, tr("Configuration filename invalid"),
-                tr("You have not filled in a valid configuration file for the InputLeap server. "
+                tr("You have not filled in a valid configuration file for the InputServer server. "
                         "Do you want to browse for the configuration file now?"), QMessageBox::Yes | QMessageBox::No) != QMessageBox::Yes
                     || !on_m_pButtonBrowseConfigFile_clicked())
                 return "";
@@ -806,8 +795,8 @@ bool MainWindow::serverArgs(QStringList& args, QString& app)
 
     if (!QFile::exists(app))
     {
-        QMessageBox::warning(this, tr("InputLeap server not found"),
-                             tr("The executable for the InputLeap server does not exist."));
+        QMessageBox::warning(this, tr("InputServer server not found"),
+                             tr("The executable for the InputServer server does not exist."));
         return false;
     }
 
@@ -887,7 +876,7 @@ bool MainWindow::stopDesktop()
         return true;
     }
 
-    appendLogInfo("stopping InputLeap desktop process");
+    appendLogInfo("stopping InputServer desktop process");
 
     // Prevent finished() from scheduling a restart while Stop waits for exit.
     disconnect(cmd_app_process_, nullptr, this, nullptr);
@@ -961,17 +950,17 @@ void MainWindow::set_connection_state(AppConnectionState state)
             ui_->m_pLabelPadlock->hide();
         }
 
-        setStatus(tr("InputLeap is running."));
+        setStatus(tr("InputServer is running."));
 
         break;
     }
     case AppConnectionState::CONNECTING:
         ui_->m_pLabelPadlock->hide();
-        setStatus(tr("InputLeap is starting."));
+        setStatus(tr("InputServer is starting."));
         break;
     case AppConnectionState::DISCONNECTED:
         ui_->m_pLabelPadlock->hide();
-        setStatus(tr("InputLeap is not running."));
+        setStatus(tr("InputServer is not running."));
         break;
     case AppConnectionState::TRANSFERRING:
         break;
@@ -1057,8 +1046,8 @@ void MainWindow::changeEvent(QEvent* event)
         case QEvent::LanguageChange:
         {
             ui_->retranslateUi(this);
-            setWindowTitle("Ponte");
-            ui_->m_pActionQuit->setText(tr("Stop and quit Ponte"));
+            setWindowTitle("InputServer");
+            ui_->m_pActionQuit->setText(tr("Stop and quit InputServer"));
             retranslateMenuBar();
 
             proofreadInfo();
@@ -1088,34 +1077,82 @@ bool MainWindow::event(QEvent* event)
     return QMainWindow::event(event);
 }
 
-void MainWindow::updateZeroconfService()
+void MainWindow::updateDiscovery()
 {
-    QMutexLocker locker(&m_UpdateZeroconfMutex);
+    discovery_.reset();
+    waiting_for_server_ = false;
+    discovered_clients_.clear();
+    ui_->m_pComboServerList->clear();
+    ui_->m_pComboServerList->hide();
 
-    if (isBonjourRunning()) {
-        if (!m_AppConfig->wizardShouldRun()) {
-            if (m_pZeroconfService) {
-                delete m_pZeroconfService;
-                m_pZeroconfService = nullptr;
-            }
+    if (m_AppConfig->wizardShouldRun()) {
+        return;
+    }
 
-            if (m_AppConfig->autoConfig() || app_role() == AppRole::Server) {
-                m_pZeroconfService = new ZeroconfService(this);
-            }
-        }
+    const bool server = app_role() == AppRole::Server;
+    if (!server && !m_AppConfig->autoConfig()) {
+        return;
+    }
+
+    // The discovery port is the one right after the connection port.
+    const auto tcp_port = static_cast<quint16>(appConfig().port());
+    discovery_ = std::make_unique<UdpDiscovery>(
+        server ? UdpDiscovery::Role::Server : UdpDiscovery::Role::Client,
+        getScreenName(), tcp_port, static_cast<quint16>(tcp_port + 1));
+    connect(discovery_.get(), &UdpDiscovery::serverFound, this, &MainWindow::serverDetected);
+    connect(discovery_.get(), &UdpDiscovery::serverLost, this, &MainWindow::serverLost);
+    connect(discovery_.get(), &UdpDiscovery::clientFound, this, &MainWindow::clientDetected);
+
+    if (!discovery_->start()) {
+        appendLogError(tr("automatic discovery unavailable: %1").arg(discovery_->errorString()));
+        discovery_.reset();
     }
 }
 
-void MainWindow::serverDetected(const QString name)
+void MainWindow::serverDetected(const QString& name, const QHostAddress& address, quint16 port)
 {
-    if (ui_->m_pComboServerList->findText(name) == -1) {
-        // Note: the first added item triggers startInputLeap
-        ui_->m_pComboServerList->addItem(name);
+    const QString host = address.toString();
+    const QString label = QStringLiteral("%1 (%2)").arg(name, host);
+    if (ui_->m_pComboServerList->findText(label) != -1) {
+        return;
     }
+
+    appendLogInfo(tr("server found on the network: %1").arg(label));
+    // Note: the first added item triggers a (re)start of the client
+    ui_->m_pComboServerList->addItem(label, QStringList{host, QString::number(port)});
 
     if (ui_->m_pComboServerList->count() > 1) {
         ui_->m_pComboServerList->show();
     }
+}
+
+void MainWindow::serverLost(const QString& name, const QHostAddress& address)
+{
+    const QString label = QStringLiteral("%1 (%2)").arg(name, address.toString());
+    const int index = ui_->m_pComboServerList->findText(label);
+    if (index == -1) {
+        return;
+    }
+
+    appendLogInfo(tr("server no longer answering: %1").arg(label));
+    // Keep the server being used: a missed reply must not drop the connection.
+    if (index != ui_->m_pComboServerList->currentIndex()) {
+        ui_->m_pComboServerList->removeItem(index);
+    }
+    if (ui_->m_pComboServerList->count() <= 1) {
+        ui_->m_pComboServerList->hide();
+    }
+}
+
+void MainWindow::clientDetected(const QString& name)
+{
+    // Clients ask every few seconds; offer each one only once per session.
+    if (discovered_clients_.contains(name)) {
+        return;
+    }
+    discovered_clients_.insert(name);
+    appendLogInfo(tr("client found on the network: %1").arg(name));
+    autoAddScreen(name);
 }
 
 void MainWindow::updateSSLFingerprint()
@@ -1172,7 +1209,7 @@ void MainWindow::on_m_pGroupClient_toggled(bool on)
 {
     ui_->m_pGroupServer->setChecked(!on);
     if (on) {
-        updateZeroconfService();
+        updateDiscovery();
     }
 }
 
@@ -1180,13 +1217,13 @@ void MainWindow::on_m_pGroupServer_toggled(bool on)
 {
     ui_->m_pGroupClient->setChecked(!on);
     if (on) {
-        updateZeroconfService();
+        updateDiscovery();
     }
 }
 
 bool MainWindow::on_m_pButtonBrowseConfigFile_clicked()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Browse for a InputLeap config file"), QString(), APP_CONFIG_OPEN_FILTER);
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Browse for a InputServer config file"), QString(), APP_CONFIG_OPEN_FILTER);
 
     if (!fileName.isEmpty())
     {
@@ -1269,204 +1306,24 @@ void MainWindow::on_m_pButtonReload_clicked()
     restart_cmd_app();
 }
 
-#if defined(Q_OS_WIN)
-bool MainWindow::isServiceRunning(QString name)
-{
-    SC_HANDLE hSCManager;
-    hSCManager = OpenSCManager(nullptr, nullptr, SC_MANAGER_CONNECT);
-    if (hSCManager == nullptr) {
-        appendLogError("failed to open a service controller manager, error: " +
-            GetLastError());
-        return false;
-    }
-
-    auto array = name.toLocal8Bit();
-
-    SC_HANDLE hService = OpenService(hSCManager, reinterpret_cast<LPCWSTR>(array.data()), SERVICE_QUERY_STATUS);
-    if (hService == nullptr) {
-        appendLogDebug("failed to open service: " + name);
-        return false;
-    }
-
-    SERVICE_STATUS status;
-    if (QueryServiceStatus(hService, &status)) {
-        if (status.dwCurrentState == SERVICE_RUNNING) {
-            return true;
-        }
-    }
-
-    return false;
-}
-#else
-bool MainWindow::isServiceRunning()
-{
-    return false;
-}
-#endif
-
-bool MainWindow::isBonjourRunning()
-{
-    bool result = false;
-
-#if defined(Q_OS_WIN)
-    result = isServiceRunning("Bonjour Service");
-#else
-    result = true;
-#endif
-
-    return result;
-}
-
-void MainWindow::downloadBonjour()
-{
-#if defined(Q_OS_WIN)
-    QUrl url;
-    int arch = getProcessorArch();
-    if (arch == kProcessorArchWin32) {
-        url.setUrl(bonjourBaseUrl + bonjourFilename32);
-        appendLogInfo("downloading 32-bit Bonjour");
-    }
-    else if (arch == kProcessorArchWin64) {
-        url.setUrl(bonjourBaseUrl + bonjourFilename64);
-        appendLogInfo("downloading 64-bit Bonjour");
-    }
-    else {
-        QMessageBox::critical(
-            this, tr("InputLeap"),
-            tr("Failed to detect system architecture."));
-        return;
-    }
-
-    if (m_pDataDownloader == nullptr) {
-        m_pDataDownloader = new DataDownloader(this);
-        connect(m_pDataDownloader, &DataDownloader::isComplete, this, &MainWindow::installBonjour);
-    }
-
-    m_pDataDownloader->download(url);
-
-    if (m_DownloadMessageBox == nullptr) {
-        m_DownloadMessageBox = new QMessageBox(this);
-        m_DownloadMessageBox->setWindowTitle("InputLeap");
-        m_DownloadMessageBox->setIcon(QMessageBox::Information);
-        m_DownloadMessageBox->setText("Installing Bonjour, please wait...");
-        m_DownloadMessageBox->setStandardButtons(QMessageBox::NoButton);        
-        m_pCancelButton = m_DownloadMessageBox->addButton(
-            tr("Cancel"), QMessageBox::RejectRole);
-    }
-    m_DownloadMessageBox->exec();
-
-    if (m_DownloadMessageBox->clickedButton() == m_pCancelButton) {
-        m_pDataDownloader->cancel();
-    }
-#endif
-}
-
-void MainWindow::installBonjour()
-{
-#if defined(Q_OS_WIN)
-    QString tempLocation = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
-    QString filename = tempLocation;
-    filename.append("\\").append(bonjourTargetFilename);
-    QFile file(filename);
-    if (!file.open(QIODevice::WriteOnly)) {
-        m_DownloadMessageBox->hide();
-
-        QMessageBox::warning(
-            this, "InputLeap",
-            tr("Failed to download Bonjour installer to location: %1")
-            .arg(tempLocation));
-        return;
-    }
-
-    file.write(m_pDataDownloader->data());
-    file.close();
-
-    QStringList arguments;
-    arguments.append("/i");
-    QString winFilename = QDir::toNativeSeparators(filename);
-    arguments.append(winFilename);
-    arguments.append("/passive");
-    if (m_BonjourInstall == nullptr) {
-        m_BonjourInstall = new CommandProcess("msiexec", arguments);
-    }
-
-    QThread* thread = new QThread;
-    connect(m_BonjourInstall, &CommandProcess::finished, this, &MainWindow::bonjourInstallFinished);
-    connect(m_BonjourInstall, &CommandProcess::finished, thread, &QThread::quit);
-    connect(thread, &QThread::finished, thread, &QThread::deleteLater);
-
-    m_BonjourInstall->moveToThread(thread);
-    thread->start();
-
-    QMetaObject::invokeMethod(m_BonjourInstall, "run", Qt::QueuedConnection);
-
-    m_DownloadMessageBox->hide();
-#endif
-}
-
-void MainWindow::promptAutoConfig()
-{
-    if (!isBonjourRunning()) {
-        int r = QMessageBox::question(
-            this, tr("InputLeap"),
-            tr("Do you want to enable auto config and install Bonjour?\n\n"
-               "This feature helps you establish the connection."),
-            QMessageBox::Yes | QMessageBox::No);
-
-        if (r == QMessageBox::Yes) {
-            m_AppConfig->setAutoConfig(true);
-            downloadBonjour();
-        }
-        else {
-            m_AppConfig->setAutoConfig(false);
-            ui_->m_pCheckBoxAutoConfig->setChecked(false);
-        }
-    }
-
-    m_AppConfig->setAutoConfigPrompted(true);
-}
-
 void MainWindow::comboServerList_currentIndexChanged(QString )
 {
-    if (ui_->m_pComboServerList->count() != 0) {
+    // Only (re)start when the user wants to be connected: either the client
+    // is running or Start was pressed while no server had answered yet.
+    if (ui_->m_pComboServerList->count() == 0) {
+        return;
+    }
+    if (waiting_for_server_ || m_ExpectedRunningState == kStarted) {
+        waiting_for_server_ = false;
         restart_cmd_app();
     }
 }
 
 void MainWindow::on_m_pCheckBoxAutoConfig_toggled(bool checked)
 {
-    if (!isBonjourRunning() && checked) {
-        if (!m_SuppressAutoConfigWarning) {
-            int r = QMessageBox::information(
-                this, tr("InputLeap"),
-                tr("Auto config feature requires Bonjour.\n\n"
-                   "Do you want to install Bonjour?"),
-                QMessageBox::Yes | QMessageBox::No);
-
-            if (r == QMessageBox::Yes) {
-                downloadBonjour();
-            }
-        }
-
-        ui_->m_pCheckBoxAutoConfig->setChecked(false);
-        return;
-    }
-
     ui_->m_pLineEditHostname->setDisabled(checked);
     appConfig().setAutoConfig(checked);
-    updateZeroconfService();
-
-    if (!checked) {
-        ui_->m_pComboServerList->clear();
-        ui_->m_pComboServerList->hide();
-    }
-}
-
-void MainWindow::bonjourInstallFinished()
-{
-    appendLogInfo("Bonjour install finished");
-
-    ui_->m_pCheckBoxAutoConfig->setChecked(true);
+    updateDiscovery();
 }
 
 void MainWindow::windowStateChanged()

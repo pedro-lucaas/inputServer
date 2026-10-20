@@ -62,6 +62,31 @@ BOOL WINAPI AppUtilWindows::consoleHandler(DWORD)
     return TRUE;
 }
 
+// Windows 11 puts background processes without a visible window into
+// "efficiency mode" (EcoQoS), which delays input forwarding noticeably.
+// The engine runs hidden behind the GUI, so opt out explicitly. Resolved
+// at runtime because SetProcessInformation is missing before Windows 8.
+static
+void
+disablePowerThrottling()
+{
+    using SetProcessInformationFn = BOOL (WINAPI*)(HANDLE, PROCESS_INFORMATION_CLASS,
+                                                   LPVOID, DWORD);
+    auto setInfo = reinterpret_cast<SetProcessInformationFn>(
+        GetProcAddress(GetModuleHandleW(L"kernel32.dll"), "SetProcessInformation"));
+    if (setInfo == nullptr) {
+        return;
+    }
+
+    PROCESS_POWER_THROTTLING_STATE state{};
+    state.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
+    state.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED |
+                        PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION;
+    state.StateMask = 0;
+    // Failure only means the system has no throttling to disable.
+    setInfo(GetCurrentProcess(), ProcessPowerThrottling, &state, sizeof(state));
+}
+
 static
 int
 mainLoopStatic()
@@ -138,7 +163,7 @@ int
 AppUtilWindows::run(int argc, char** argv)
 {
     if (!IsWindowsXPSP3OrGreater()) {
-        throw std::runtime_error("InputLeap only supports Windows XP SP3 and above.");
+        throw std::runtime_error("InputServer only supports Windows XP SP3 and above.");
     }
 
     // record window instance for tray icon, etc
@@ -146,6 +171,7 @@ AppUtilWindows::run(int argc, char** argv)
 
     MSWindowsScreen::init(ArchMiscWindows::instanceWin32());
     Thread::getCurrentThread().setPriority(-14);
+    disablePowerThrottling();
 
     StartupFunc startup;
     if (ArchMiscWindows::wasLaunchedAsService()) {

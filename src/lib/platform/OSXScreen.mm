@@ -42,8 +42,37 @@
 #include <AvailabilityMacros.h>
 #include <IOKit/hidsystem/event_status_driver.h>
 #include <AppKit/NSEvent.h>
+#include <Foundation/NSProcessInfo.h>
 
 namespace inputleap {
+
+// macOS App Nap and timer coalescing throttle background processes such as
+// the engine started by the GUI, which adds a constant delay to every injected
+// event. A latency-critical activity keeps the process at full responsiveness
+// while the screen is enabled. Display and system sleep remain allowed.
+static id<NSObject> s_latencyActivity = nil;
+
+static void beginLatencyCriticalActivity()
+{
+	if (s_latencyActivity != nil) {
+		return;
+	}
+	NSActivityOptions options = NSActivityUserInitiatedAllowingIdleSystemSleep |
+								NSActivityLatencyCritical;
+	s_latencyActivity = [[[NSProcessInfo processInfo]
+		beginActivityWithOptions:options
+						  reason:@"Forwarding keyboard and mouse input"] retain];
+}
+
+static void endLatencyCriticalActivity()
+{
+	if (s_latencyActivity == nil) {
+		return;
+	}
+	[[NSProcessInfo processInfo] endActivity:s_latencyActivity];
+	[s_latencyActivity release];
+	s_latencyActivity = nil;
+}
 
 // This isn't in any Apple SDK that I know of as of yet.
 constexpr int INPUT_LEAP_EVENT_MOUSE_SCROLL = 11;
@@ -712,6 +741,8 @@ OSXScreen::enable()
 	m_events->add_handler(EventType::TIMER, m_clipboardTimer,
                           [this](const auto& e){ handle_clipboard_check(); });
 
+	beginLatencyCriticalActivity();
+
 	if (m_isPrimary) {
 		// FIXME -- start watching jump zones
 
@@ -772,7 +803,7 @@ OSXScreen::disable()
 		CFRelease(m_eventTapPort);
 		m_eventTapPort = nullptr;
 	}
-	// FIXME -- allow system to enter power saving mode
+	endLatencyCriticalActivity();
 
 	// disable drag handling
 	m_dragNumButtonsDown = 0;
@@ -813,7 +844,7 @@ OSXScreen::enter()
 		}
 
 		// IOKit API for declaring a power management assertion
-		IOPMAssertionDeclareUserActivity(CFSTR("Input Leap - entering screen"), kIOPMUserActiveLocal, &assertionID);
+		IOPMAssertionDeclareUserActivity(CFSTR("InputServer - entering screen"), kIOPMUserActiveLocal, &assertionID);
 
 		avoidSupression();
 	}

@@ -20,7 +20,7 @@ config.h
 src/gui/gui.pro.user*
 src/gui/.qmake.stash
 src/gui/.rnd
-src/setup/win32/input-leap.suo
+src/setup/win32/inputserver.suo
 Makefile
 *.cmake
 **/CMakeFiles/
@@ -39,9 +39,9 @@ CMakeLists.txt.user
 bundle
 compile_commands.json
 
-# Ponte local artifacts and private profiles
+# InputServer local artifacts and private profiles
 /lifecycle-build/
-/dist-ponte/
+/dist-inputserver/
 *.pem
 *.key
 *.log

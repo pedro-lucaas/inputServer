@@ -48,9 +48,7 @@ if(INPUTLEAP_ADD_HEADERS)
 endif()
 
 add_executable(input-leapc ${sources})
-if(WIN32)
-    set_target_properties(input-leapc PROPERTIES OUTPUT_NAME "ponte-client")
-endif()
+set_target_properties(input-leapc PROPERTIES OUTPUT_NAME "inputserver-client")
 target_link_libraries(input-leapc
     arch base client common io mt net ipc platform server synlib ${libs} OpenSSL::SSL OpenSSL::Crypto)
 

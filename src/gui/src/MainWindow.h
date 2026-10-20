@@ -37,7 +37,9 @@
 #include "LogWindow.h"
 #include "ProcessGuard.h"
 
+#include <QHostAddress>
 #include <QMutex>
+#include <QSet>
 #include <memory>
 
 class QAction;
@@ -57,9 +59,7 @@ class QAbstractButton;
 class LogDialog;
 class QInputLeapApplication;
 class SetupWizard;
-class ZeroconfService;
-class DataDownloader;
-class CommandProcess;
+class UdpDiscovery;
 class SslCertificate;
 
 namespace Ui
@@ -102,8 +102,7 @@ class MainWindow : public QMainWindow
         void showConfigureServer(const QString& message);
         void showConfigureServer() { showConfigureServer(""); }
         void autoAddScreen(const QString name);
-        void updateZeroconfService();
-        void serverDetected(const QString name);
+        void updateDiscovery();
 
     Q_SIGNALS:
         void requestLanguageChange(QString newLanguage);
@@ -129,7 +128,6 @@ public slots:
         void stop_cmd_app();
         void logOutput();
         void logError();
-        void bonjourInstallFinished();
         void showLogWindow();
 
     protected:
@@ -152,14 +150,9 @@ public slots:
         void changeEvent(QEvent* event) override;
         bool event(QEvent* event) override;
         void retranslateMenuBar();
-#if defined(Q_OS_WIN)
-        bool isServiceRunning(QString name);
-#else
-        bool isServiceRunning();
-#endif
-        bool isBonjourRunning();
-        void downloadBonjour();
-        void promptAutoConfig();
+        void serverDetected(const QString& name, const QHostAddress& address, quint16 port);
+        void serverLost(const QString& name, const QHostAddress& address);
+        void clientDetected(const QString& name);
         void checkConnected(const QString& line);
         void checkFingerprint(const QString& line);
         void restart_cmd_app();
@@ -182,13 +175,9 @@ public slots:
         QMenuBar* m_pMenuBar;
         QMenu* main_menu_;
         QMenu* m_pMenuHelp;
-        ZeroconfService* m_pZeroconfService;
-        DataDownloader* m_pDataDownloader;
-        QMessageBox* m_DownloadMessageBox;
-        QAbstractButton* m_pCancelButton;
-        QMutex m_UpdateZeroconfMutex;
-        bool m_SuppressAutoConfigWarning;
-        CommandProcess* m_BonjourInstall;
+        std::unique_ptr<UdpDiscovery> discovery_;
+        QSet<QString> discovered_clients_;
+        bool waiting_for_server_ = false;
         bool m_SuppressEmptyServerWarning;
         qRuningState m_ExpectedRunningState;
         QMutex m_StopDesktopMutex;
@@ -204,6 +193,5 @@ private slots:
     void on_m_pCheckBoxAutoConfig_toggled(bool checked);
     void comboServerList_currentIndexChanged(QString );
     void on_m_pButtonReload_clicked();
-    void installBonjour();
 
 };

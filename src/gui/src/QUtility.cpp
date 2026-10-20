@@ -18,7 +18,6 @@
 #include "QUtility.h"
 
 #include "ProcessorArch.h"
-#include "CommandProcess.h"
 
 #if defined(Q_OS_LINUX)
 #include <QProcess>

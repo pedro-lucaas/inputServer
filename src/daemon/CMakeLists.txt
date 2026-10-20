@@ -22,6 +22,7 @@ if (WIN32)
 endif()
 
 add_executable (input-leapd WIN32 ${sources})
+set_target_properties(input-leapd PROPERTIES OUTPUT_NAME "inputserver-daemon")
 
 target_link_libraries (input-leapd
     arch base common io ipc mt net platform synlib ${libs} ${OPENSSL_LIBS})

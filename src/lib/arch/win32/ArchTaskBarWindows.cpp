@@ -389,7 +389,7 @@ ArchTaskBarWindows::threadMainLoop()
     m_taskBarRestart        = RegisterWindowMessage(TEXT("TaskbarCreated"));
 
     // register a window class
-    LPCTSTR className = TEXT("InputLeapTaskBar");
+    LPCTSTR className = TEXT("InputServerTaskBar");
     WNDCLASSEX classInfo;
     classInfo.cbSize        = sizeof(classInfo);
     classInfo.style         = CS_NOCLOSE;
@@ -408,7 +408,7 @@ ArchTaskBarWindows::threadMainLoop()
     // create window
     m_hwnd = CreateWindowEx(WS_EX_TOOLWINDOW,
                             className,
-                            TEXT("InputLeap Task Bar"),
+                            TEXT("InputServer Task Bar"),
                             WS_POPUP,
                             0, 0, 1, 1,
                             nullptr,

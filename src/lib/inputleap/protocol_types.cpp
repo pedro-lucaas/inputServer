@@ -20,8 +20,8 @@
 
 namespace inputleap {
 
-const char*                kMsgHello            = "Barrier%2i%2i";
-const char*                kMsgHelloBack        = "Barrier%2i%2i%s";
+const char*                kMsgHello            = "InputServer%2i%2i";
+const char*                kMsgHelloBack        = "InputServer%2i%2i%s";
 const char*                kMsgCNoop             = "CNOP";
 const char*                kMsgCClose             = "CBYE";
 const char*                kMsgCEnter             = "CINN%2i%2i%4i%2i";

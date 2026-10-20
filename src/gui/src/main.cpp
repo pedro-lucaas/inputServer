@@ -53,14 +53,6 @@ int waitForTray();
 bool checkMacAssistiveDevices();
 #endif
 
-void copy_qsettings(const QSettings &src, QSettings &dst)
-{
-    const auto keys = src.allKeys();
-    for (const auto& key : keys) {
-        dst.setValue(key, src.value(key));
-    }
-}
-
 int main(int argc, char* argv[])
 {
 #if (defined(WINAPI_XWINDOWS) || \
@@ -72,8 +64,8 @@ int main(int argc, char* argv[])
         // We're running on X11, all good.
         // Continue running.
     } else if (platformType == "wayland") {
-        QMessageBox::information(nullptr, "Input Leap",
-                                 "You are using Wayland. Input Leap supports Wayland via `libei` "
+        QMessageBox::information(nullptr, "InputServer",
+                                 "You are using Wayland. InputServer supports Wayland via `libei` "
                                  "but not all desktop environment/window managers support our "
                                  "implementation at this time. Therefore, your mileage may vary.");
     }
@@ -83,13 +75,13 @@ int main(int argc, char* argv[])
     /* Workaround for QTBUG-40332 - "High ping when QNetworkAccessManager is instantiated" */
     ::setenv ("QT_BEARER_POLL_TIMEOUT", "-1", 1);
 #endif
-    QCoreApplication::setOrganizationName("Ponte");
+    QCoreApplication::setOrganizationName("InputServer");
 	QCoreApplication::setOrganizationDomain("github.com");
-    QCoreApplication::setApplicationName("Ponte");
+    QCoreApplication::setApplicationName("InputServer");
     QCoreApplication::setApplicationVersion("0.1.0");
 
     QInputLeapApplication app(argc, argv);
-    app.setApplicationDisplayName("Ponte");
+    app.setApplicationDisplayName("InputServer");
     QByteArray instanceCommand = "show";
     for (const auto& argument : app.arguments()) {
         if (argument == "--stop" || argument == "--start" || argument == "--quit") {
@@ -104,11 +96,11 @@ int main(int argc, char* argv[])
         return 0;
     }
     if (instanceCommand != "show") {
-        fprintf(stderr, "Ponte is not running.\n");
+        fprintf(stderr, "InputServer is not running.\n");
         return 3;
     }
 
-    app.setDesktopFileName(QStringLiteral("io.github.input_leap.InputLeap"));
+    app.setDesktopFileName(QStringLiteral("inputserver"));
 
 #if defined(Q_OS_MAC)
 	if (app.applicationDirPath().startsWith("/Volumes/")) {
@@ -118,8 +110,8 @@ int main(int argc, char* argv[])
         // especially if an identically named application already exists in
         // /Applications). Thus we require InputLeap to reside in the /Applications
         // folder
-        QMessageBox::information(nullptr, "InputLeap",
-                                 "Please drag InputLeap to the Applications folder, "
+        QMessageBox::information(nullptr, "InputServer",
+                                 "Please drag InputServer to the Applications folder, "
                                  "and open it from there.");
 		return 1;
 	}
@@ -135,12 +127,6 @@ int main(int argc, char* argv[])
 	QApplication::setQuitOnLastWindowClosed(false);
 
 	QSettings settings;
-    if (settings.allKeys().empty()) {
-        // Import once; the original application's settings remain unchanged.
-        QSettings fallback_settings{"InputLeap", "InputLeap"};
-        copy_qsettings(fallback_settings, settings);
-        settings.sync();
-    }
 
 	AppConfig appConfig (&settings);
 
@@ -241,10 +227,10 @@ bool checkMacAssistiveDevices()
 	bool result = AXAPIEnabled();
 	if (!result) {
 		QMessageBox::information(
-            nullptr, "InputLeap",
+            nullptr, "InputServer",
 			"Please enable access to assistive devices "
 			"System Preferences -> Security & Privacy -> "
-            "Privacy -> Accessibility, then re-open InputLeap.");
+            "Privacy -> Accessibility, then re-open InputServer.");
 	}
 	return result;
 

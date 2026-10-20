@@ -27,12 +27,12 @@ AboutDialog::AboutDialog(QWidget* parent, const QString& app_name) :
     ui_{std::make_unique<Ui::AboutDialog>()}
 {
     ui_->setupUi(this);
-    setWindowTitle("Sobre o Ponte (derivado do Input Leap)");
+    setWindowTitle("Sobre o InputServer");
     QString version = QStringLiteral("%1-%2").arg(kVersion, INPUTLEAP_VERSION_STAGE);
 #ifdef INPUTLEAP_REVISION
     version.append(QStringLiteral("-%1").arg(INPUTLEAP_REVISION));
 #endif
-    ui_->m_pLabelAppVersion->setText("Ponte 0.1.0 | base Input Leap " + version);
+    ui_->m_pLabelAppVersion->setText("InputServer " + version);
     const int scaled_logo_height = sizeHint().width() <= 300 ? 45 : 90;
     const QPixmap scaled_logo = QPixmap(":/res/image/about.png")
                  .scaled(QSize(sizeHint().width(), scaled_logo_height),

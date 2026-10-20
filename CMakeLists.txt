@@ -16,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.21)
-project(InputLeap C CXX)
+project(InputServer C CXX)
 
 option(INPUTLEAP_BUILD_GUI "Build the GUI" ON)
 option(INPUTLEAP_BUILD_TESTS "Build the tests" ON)
@@ -137,12 +137,6 @@ if (UNIX)
             link_directories("/usr/X11R6/lib")
         endif()
 
-        if(INPUTLEAP_BUILD_GUI AND ${PKG_CONFIG_FOUND})
-            pkg_check_modules (AVAHI_COMPAT REQUIRED avahi-compat-libdns_sd)
-            include_directories (BEFORE SYSTEM ${AVAHI_COMPAT_INCLUDE_DIRS})
-            set (CMAKE_REQUIRED_INCLUDES "${CMAKE_REQUIRED_INCLUDES};${AVAHI_COMPAT_INCLUDE_DIRS}")
-        endif ()
-
         if (INPUTLEAP_BUILD_X11)
             pkg_check_modules (XLIB REQUIRED x11 xext xrandr xinerama xtst xi)
             pkg_check_modules (ICE REQUIRED ice sm)
@@ -177,11 +171,6 @@ if (UNIX)
                 int main() { XdpOutputType out = XDP_OUTPUT_NONE; }
             " HAVE_LIBPORTAL_OUTPUT_NONE)
             cmake_pop_check_state()
-        endif()
-
-        check_include_files ("dns_sd.h" HAVE_DNSSD)
-        if(INPUTLEAP_BUILD_GUI AND NOT HAVE_DNSSD)
-            message (FATAL_ERROR "Missing header: dns_sd.h")
         endif()
     endif()
 
@@ -275,7 +264,7 @@ if (APPLE)
     set (CMAKE_INSTALL_RPATH "@loader_path/../Libraries;@loader_path/../Frameworks")
     set(INPUTLEAP_BUNDLE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/dist/macos/bundle)
     set(INPUTLEAP_BUNDLE_DIR ${CMAKE_BINARY_DIR}/bundle)
-    set(INPUTLEAP_BUNDLE_APP_DIR ${INPUTLEAP_BUNDLE_DIR}/InputLeap.app)
+    set(INPUTLEAP_BUNDLE_APP_DIR ${INPUTLEAP_BUNDLE_DIR}/InputServer.app)
     set(INPUTLEAP_BUNDLE_BINARY_DIR ${INPUTLEAP_BUNDLE_APP_DIR}/Contents/MacOS)
 
     configure_files(${INPUTLEAP_BUNDLE_SOURCE_DIR} ${INPUTLEAP_BUNDLE_DIR})
@@ -284,23 +273,12 @@ if (APPLE)
                       bash build_dist.sh
                       DEPENDS input-leap input-leaps input-leapc
                       WORKING_DIRECTORY ${INPUTLEAP_BUNDLE_DIR})
-elseif (UNIX AND NOT APPLE)
-    install(FILES doc/input-leapc.1 doc/input-leaps.1 DESTINATION share/man/man1)
-
-    install(FILES res/io.github.input_leap.InputLeap.appdata.xml DESTINATION share/metainfo)
-
-    configure_files (${CMAKE_CURRENT_SOURCE_DIR}/dist/rpm ${CMAKE_BINARY_DIR}/rpm)
-    install(FILES res/io.github.input_leap.InputLeap.svg DESTINATION share/icons/hicolor/scalable/apps)
-    install(FILES res/io.github.input_leap.InputLeap.desktop DESTINATION share/applications)
 endif()
 
 #
 # Windows Installer
 #
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-        set(INPUTLEAP_WIX_VERSION "${INPUTLEAP_VERSION_MAJOR}.${INPUTLEAP_VERSION_MINOR}.${INPUTLEAP_VERSION_PATCH}")
-        message (STATUS "Configuring the wix installer")
-        configure_files (${CMAKE_CURRENT_SOURCE_DIR}/dist/wix ${CMAKE_BINARY_DIR}/installer-wix)
         message (STATUS "Configuring the inno installer")
         configure_files (${CMAKE_CURRENT_SOURCE_DIR}/dist/inno ${CMAKE_BINARY_DIR}/installer-inno)
 endif()
