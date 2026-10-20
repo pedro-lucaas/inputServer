@@ -144,10 +144,8 @@ int main(int argc, char* argv[])
 	MainWindow mainWindow(settings, appConfig);
     instance.onCommand(&mainWindow, [&](QByteArray command) {
         if (command == "stop" || command == "quit") {
-            QMetaObject::invokeMethod(&mainWindow, "stop_cmd_app", Qt::DirectConnection);
-            if (command == "quit") {
-                app.quit();
-            }
+            if (command == "quit") mainWindow.quit_cmd_app();
+            else QMetaObject::invokeMethod(&mainWindow, "stop_cmd_app", Qt::DirectConnection);
             return;
         }
         if (command == "start") {

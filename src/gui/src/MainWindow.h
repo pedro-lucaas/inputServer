@@ -36,6 +36,7 @@
 #include "Ipc.h"
 #include "LogWindow.h"
 #include "ProcessGuard.h"
+#include "AsyncProcessStopper.h"
 
 #include <QHostAddress>
 #include <QMutex>
@@ -111,6 +112,7 @@ public slots:
         void appendLogDebug(const QString& text);
         void appendLogError(const QString& text);
         void start_cmd_app();
+        void quit_cmd_app();
         void setServerMode(bool isServerMode);
 
     protected slots:
@@ -145,6 +147,8 @@ public slots:
         QString getIPAddresses();
         void stopService();
         bool stopDesktop();
+        void beginStop(bool restart);
+        void finishStop(bool success);
         void changeEvent(QEvent* event) override;
         bool event(QEvent* event) override;
         void retranslateMenuBar();
@@ -195,6 +199,11 @@ public slots:
 
         bool m_fingerprint_expanded = false;
         QTimer restartTimer_;
+        AsyncProcessStopper process_stopper_;
+        bool stopping_ = false;
+        bool restart_after_stop_ = false;
+        bool quit_after_stop_ = false;
+        AppConnectionState state_before_stop_ = AppConnectionState::DISCONNECTED;
         QTimer network_check_timer_;
         ProcessGuard processGuard_;
 

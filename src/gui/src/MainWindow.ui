@@ -650,7 +650,7 @@
          <bool>false</bool>
         </property>
         <property name="text">
-         <string>&amp;Reload</string>
+         <string>&amp;Restart</string>
         </property>
         <property name="toolTip">
          <string>Restart the connection to apply changes</string>

@@ -122,7 +122,9 @@ QFrame#frameRoleSwitch QPushButton:checked:disabled { background: %2; color: %7;
 QFrame#frameStatusPill { background: %5; border-radius: 11px; }
 QFrame#frameStatusPill QLabel { font-weight: 500; }
 QFrame#frameStatusPill QLabel#labelStatusDot { color: %7; }
-QFrame#frameStatusPill[state="starting"] QLabel#labelStatusDot { color: %11; }
+QFrame#frameStatusPill[state="starting"] QLabel#labelStatusDot,
+QFrame#frameStatusPill[state="stopping"] QLabel#labelStatusDot,
+QFrame#frameStatusPill[state="restarting"] QLabel#labelStatusDot { color: %11; }
 QFrame#frameStatusPill[state="on"] QLabel#labelStatusDot { color: %10; }
 
 QPushButton {
@@ -138,6 +140,11 @@ QPushButton[primary="true"] {
 }
 QPushButton[primary="true"]:hover { background: %9; }
 QPushButton[primary="true"][running="true"] { background: %12; }
+QPushButton[primary="true"][running="true"]:enabled:hover { background: %13; }
+QPushButton[primary="true"][running="true"]:enabled:pressed { background: %14; }
+QPushButton[primary="true"]:disabled { background: %5; color: %7; }
+QPushButton#m_pButtonReload:enabled:hover { background: %5; border-color: %8; }
+QPushButton#m_pButtonReload:enabled:pressed { background: %4; }
 
 QLineEdit {
     background: %3; color: %6; border: 1px solid %4; border-radius: 6px;
@@ -158,7 +165,7 @@ QToolButton:hover { background: %5; color: %6; }
 QToolButton:checked { color: %6; }
 )")
         .arg(c.window, c.card, c.input, c.border, c.track, c.text, c.muted, c.accent, c.accent_hover)
-        .arg(c.success, c.warning, c.danger);
+        .arg(c.success, c.warning, c.danger, QColor(c.danger).darker(115).name(), QColor(c.danger).darker(135).name());
 }
 
 void apply(QApplication& app)

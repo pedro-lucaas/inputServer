@@ -60,6 +60,7 @@
 
 #include <signal.h>
 #include <algorithm>
+#include <utility>
 
 namespace {
 
@@ -100,6 +101,8 @@ const char* icon_name_for_connection_state(AppConnectionState state)
     switch (state) {
         default:
         case AppConnectionState::DISCONNECTED: return "inputserver-disconnected";
+        case AppConnectionState::STOPPING:
+        case AppConnectionState::RESTARTING:
         case AppConnectionState::CONNECTING: return "inputserver-disconnected";
         case AppConnectionState::CONNECTED: return "inputserver-connected";
         case AppConnectionState::TRANSFERRING: return "inputserver-transfering";
@@ -202,7 +205,10 @@ MainWindow::MainWindow(QSettings& settings, AppConfig& appConfig) :
 
 MainWindow::~MainWindow()
 {
-    stop_cmd_app();
+    // Shutdown fallback only; interactive Stop/Restart never waits synchronously.
+    restartTimer_.stop();
+    m_ExpectedRunningState = kStopped;
+    stopDesktop();
 
     saveSettings();
 
@@ -332,15 +338,19 @@ void MainWindow::loadSettings()
 
 void MainWindow::initConnections()
 {
+    // One permanent click handler; state changes must not accumulate slots.
+    disconnect(ui_->m_pButtonToggleStart, nullptr, ui_->m_pActionStartCmdApp, nullptr);
+    disconnect(ui_->m_pButtonToggleStart, nullptr, ui_->m_pActionStopCmdApp, nullptr);
+    connect(ui_->m_pButtonToggleStart, &QPushButton::clicked, this, [this] {
+        if (connection_state() == AppConnectionState::DISCONNECTED) start_cmd_app();
+        else if (!stopping_) stop_cmd_app();
+    });
     connect(ui_->m_pActionMinimize, &QAction::triggered, this, &MainWindow::hide);
     connect(ui_->m_pActionRestore, &QAction::triggered, this, &MainWindow::showNormal);
     connect(ui_->m_pActionStartCmdApp, &QAction::triggered, this, &MainWindow::start_cmd_app);
     connect(ui_->m_pActionStopCmdApp, &QAction::triggered, this, &MainWindow::stop_cmd_app);
     connect(ui_->m_pActionShowLog, &QAction::triggered, this, &MainWindow::showLogWindow);
-    connect(ui_->m_pActionQuit, &QAction::triggered, this, [this] {
-        stop_cmd_app();
-        qApp->quit();
-    });
+    connect(ui_->m_pActionQuit, &QAction::triggered, this, &MainWindow::quit_cmd_app);
 }
 
 void MainWindow::saveSettings()
@@ -446,6 +456,7 @@ void MainWindow::appendLogRaw(const QString& text)
 void MainWindow::updateFromLogLine(const QString &line)
 {
     // TODO: this code makes Andrew cry
+    if (stopping_) return;
     checkConnected(line);
     checkFingerprint(line);
     registerTrustedClient(line);
@@ -569,8 +580,7 @@ void MainWindow::registerTrustedClient(const QString& line)
 
 void MainWindow::restart_cmd_app()
 {
-    stop_cmd_app();
-    start_cmd_app();
+    if (!quit_after_stop_) beginStop(true);
 }
 
 void MainWindow::proofreadInfo()
@@ -582,6 +592,12 @@ void MainWindow::proofreadInfo()
 
 void MainWindow::start_cmd_app()
 {
+    if (quit_after_stop_) return;
+    if (stopping_) {
+        restart_after_stop_ = true;
+        set_connection_state(AppConnectionState::RESTARTING);
+        return;
+    }
     // Repeated Start signals must never replace the owned process pointer.
     if (cmd_app_process_ && cmd_app_process_->state() != QProcess::NotRunning) {
         return;
@@ -693,19 +709,18 @@ void MainWindow::start_cmd_app()
 
     if (desktopMode)
     {
+        connect(cmd_app_process_, &QProcess::started, this, [this] {
+            if (cmd_app_process_ && !processGuard_.attach(cmd_app_process_->processId())) {
+                appendLogError("cannot establish process ownership; stopping engine");
+                stop_cmd_app();
+            }
+        });
+        connect(cmd_app_process_, &QProcess::errorOccurred, this, [this](QProcess::ProcessError error) {
+            if (error != QProcess::FailedToStart || stopping_) return;
+            appendLogError(tr("Unable to start the process: %1").arg(cmd_app_process_->errorString()));
+            stop_cmd_app();
+        });
         cmd_app_process_->start(app, args);
-        if (!cmd_app_process_->waitForStarted())
-        {
-            show();
-            QMessageBox::warning(this, tr("Program can not be started"), QString(tr("The executable<br><br>%1<br><br>could not be successfully started, although it does exist. Please check if you have sufficient permissions to run this program.").arg(app)));
-            stop_cmd_app();
-            return;
-        }
-        if (!processGuard_.attach(cmd_app_process_->processId())) {
-            appendLogError("cannot establish process ownership; stopping engine");
-            stop_cmd_app();
-            return;
-        }
     }
 
     if (serviceMode)
@@ -871,36 +886,60 @@ bool MainWindow::serverArgs(QStringList& args, QString& app)
     return true;
 }
 
+void MainWindow::quit_cmd_app()
+{
+    quit_after_stop_ = true;
+    beginStop(false);
+}
+
 void MainWindow::stop_cmd_app()
 {
-    appendLogDebug("stopping process");
+    beginStop(false);
+}
 
+void MainWindow::beginStop(bool restart)
+{
+    restart_after_stop_ = restart;
     m_ExpectedRunningState = kStopped;
     restartTimer_.stop();
+    if (!stopping_) state_before_stop_ = connection_state();
+    stopping_ = true;
+    set_connection_state(restart ? AppConnectionState::RESTARTING : AppConnectionState::STOPPING);
+    if (process_stopper_.busy()) return;
+    if (appConfig().processMode() == Service) stopService();
+    if (cmd_app_process_) appendLogInfo("stopping InputServer desktop process");
+    process_stopper_.stop(cmd_app_process_, [this](bool success) { finishStop(success); });
+}
 
-    if (appConfig().processMode() == Service)
-    {
-        stopService();
+void MainWindow::finishStop(bool success)
+{
+    if (!success) {
+        stopping_ = false;
+        restart_after_stop_ = false;
+        set_connection_state(state_before_stop_ == AppConnectionState::CONNECTED
+            ? AppConnectionState::CONNECTED : AppConnectionState::CONNECTING);
+        appendLogError("process is still running; Stop was not completed");
+        setStatus(tr("Unable to stop the process. See the log."));
+        return;
     }
-    else if (appConfig().processMode() == Desktop)
-    {
-        if (!stopDesktop()) {
-            setStatus(tr("Unable to stop the process. See the log."));
-            return;
-        }
-    }
-
-    set_connection_state(AppConnectionState::DISCONNECTED);
-
-    // HACK: deleting the object deletes the physical file, which is
-    // bad, since it could be in use by the Windows service!
-    if (appConfig().processMode() == Desktop) {
-        delete m_pTempConfigFile;
-    }
+    if (cmd_app_process_) cmd_app_process_->deleteLater();
+    cmd_app_process_ = nullptr;
+    processGuard_.reset();
+    if (appConfig().processMode() == Desktop) delete m_pTempConfigFile;
     m_pTempConfigFile = nullptr;
-
-    // reset so that new connects cause auto-hide.
     m_AlreadyHidden = false;
+    stopping_ = false;
+    const bool restart = std::exchange(restart_after_stop_, false);
+    if (quit_after_stop_) {
+        qApp->quit();
+    } else if (restart) {
+        // Queue startup after the old child and its signal delivery have finished.
+        QTimer::singleShot(0, this, [this] {
+            if (connection_state() == AppConnectionState::RESTARTING) start_cmd_app();
+        });
+    } else {
+        set_connection_state(AppConnectionState::DISCONNECTED);
+    }
 }
 
 void MainWindow::stopService()
@@ -940,6 +979,7 @@ bool MainWindow::stopDesktop()
 
 void MainWindow::cmd_app_finished(int exitCode, QProcess::ExitStatus)
 {
+    if (stopping_ || (sender() && sender() != cmd_app_process_)) return;
     if (exitCode == 0) {
         appendLogInfo(QString("process exited normally"));
     }
@@ -948,6 +988,7 @@ void MainWindow::cmd_app_finished(int exitCode, QProcess::ExitStatus)
     }
 
     if (m_ExpectedRunningState == kStarted) {
+        set_connection_state(AppConnectionState::CONNECTING);
         restartTimer_.start();
         appendLogInfo(QString("detected process not running, auto restarting"));
     }
@@ -963,28 +1004,33 @@ void MainWindow::set_connection_state(AppConnectionState state)
 
     if (state == AppConnectionState::CONNECTED || state == AppConnectionState::CONNECTING)
     {
-        disconnect(ui_->m_pButtonToggleStart, &QPushButton::clicked, ui_->m_pActionStartCmdApp, &QAction::trigger);
-        connect(ui_->m_pButtonToggleStart, &QPushButton::clicked, ui_->m_pActionStopCmdApp, &QAction::trigger);
         ui_->m_pButtonToggleStart->setText(tr("&Stop"));
         ui_->m_pButtonReload->setEnabled(true);
     }
     else if (state == AppConnectionState::DISCONNECTED)
     {
-        disconnect(ui_->m_pButtonToggleStart, &QPushButton::clicked, ui_->m_pActionStopCmdApp, &QAction::trigger);
-        connect(ui_->m_pButtonToggleStart, &QPushButton::clicked, ui_->m_pActionStartCmdApp, &QAction::trigger);
         ui_->m_pButtonToggleStart->setText(tr("&Start"));
         ui_->m_pButtonReload->setEnabled(false);
     }
 
+    const bool transitioning = state == AppConnectionState::STOPPING || state == AppConnectionState::RESTARTING;
+    ui_->m_pButtonToggleStart->setEnabled(!transitioning);
+    ui_->m_pButtonReload->setText(state == AppConnectionState::RESTARTING ? tr("Restarting...") : tr("&Restart"));
+    if (transitioning) {
+        ui_->m_pButtonToggleStart->setText(state == AppConnectionState::STOPPING ? tr("Stopping...") : tr("Restarting..."));
+        ui_->m_pButtonReload->setEnabled(false);
+    }
     const bool active = state != AppConnectionState::DISCONNECTED;
     ui_->m_pActionStartCmdApp->setEnabled(!active);
-    ui_->m_pActionStopCmdApp->setEnabled(active);
+    ui_->m_pActionStopCmdApp->setEnabled(active && !transitioning);
     // Changing the role while running would leave the engine in the old one.
     ui_->frameRoleSwitch->setEnabled(!active);
 
     if (state != AppConnectionState::TRANSFERRING) {
         const char* pill = state == AppConnectionState::CONNECTED ? "on"
-                         : state == AppConnectionState::CONNECTING ? "starting" : "off";
+                         : state == AppConnectionState::CONNECTING ? "starting"
+                         : state == AppConnectionState::STOPPING ? "stopping"
+                         : state == AppConnectionState::RESTARTING ? "restarting" : "off";
         ui_->frameStatusPill->setProperty("state", pill);
         ui_->m_pButtonToggleStart->setProperty("running", active);
         theme::repolish(ui_->frameStatusPill);
@@ -1008,6 +1054,14 @@ void MainWindow::set_connection_state(AppConnectionState state)
     case AppConnectionState::CONNECTING:
         ui_->m_pLabelPadlock->hide();
         setStatus(tr("Starting..."));
+        break;
+    case AppConnectionState::STOPPING:
+        ui_->m_pLabelPadlock->hide();
+        setStatus(tr("Stopping..."));
+        break;
+    case AppConnectionState::RESTARTING:
+        ui_->m_pLabelPadlock->hide();
+        setStatus(tr("Restarting..."));
         break;
     case AppConnectionState::DISCONNECTED:
         ui_->m_pLabelPadlock->hide();
@@ -1245,6 +1299,9 @@ void MainWindow::initModernView()
 
     ui_->frameStatusPill->setProperty("state", "off");
     ui_->m_pButtonToggleStart->setProperty("running", false);
+    ui_->m_pButtonToggleStart->setCursor(Qt::PointingHandCursor);
+    ui_->m_pButtonReload->setCursor(Qt::PointingHandCursor);
+    ui_->m_pButtonReload->setText(tr("&Restart"));
     theme::repolish(ui_->centralwidget);
 
     // A "Public" network keeps other computers out (the installer only opens

@@ -7,3 +7,7 @@ enable_testing()
 add_executable(lifecycle-tests SingleInstanceTest.cpp)
 target_link_libraries(lifecycle-tests PRIVATE Qt6::Core Qt6::Network Qt6::Test)
 add_test(NAME single-instance COMMAND lifecycle-tests)
+
+add_executable(process-stop-tests ProcessStopTest.cpp)
+target_link_libraries(process-stop-tests PRIVATE Qt6::Core Qt6::Test)
+add_test(NAME process-stop COMMAND process-stop-tests)

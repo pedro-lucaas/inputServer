@@ -54,6 +54,7 @@ set(GUI_SOURCE_FILES
 )
 
 set(GUI_HEADER_FILES
+    src/AsyncProcessStopper.h
     src/AboutDialog.h
     src/ActionDialog.h
     src/AddClientDialog.h

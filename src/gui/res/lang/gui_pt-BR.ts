@@ -725,6 +725,18 @@ To automatically trust this fingerprint for future connections, click Yes. To re
         <source>Could not save configuration to file.</source>
         <translation>Não foi possível salvar a configuração no arquivo.</translation>
     </message>
+    <message>
+        <source>Stopping...</source>
+        <translation>Parando...</translation>
+    </message>
+    <message>
+        <source>Restarting...</source>
+        <translation>Reiniciando...</translation>
+    </message>
+    <message>
+        <source>&amp;Restart</source>
+        <translation>&amp;Reiniciar</translation>
+    </message>
 </context>
 <context>
     <name>MainWindowBase</name>

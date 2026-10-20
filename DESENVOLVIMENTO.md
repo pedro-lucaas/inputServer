@@ -116,6 +116,12 @@ O cliente usa `SimpleEventQueueBuffer` para os eventos internos do motor. A fila
 
 O teste `macos-client-handshake` inicia o cliente real com perfil e certificados temporários, negocia TLS mútuo em localhost e envia a saudação do protocolo depois da inicialização do Cocoa. A versão anterior expirou nesse teste; a versão corrigida respondeu. Foram também validadas três conexões consecutivas com log INFO e arrastar/soltar habilitado contra o servidor Windows da rede local.
 
+## Parar e reiniciar sem bloquear a interface
+
+Stop e Restart usam `AsyncProcessStopper`: o pedido de encerramento é assíncrono, com até 3 segundos para saída normal e depois até 2 segundos para encerramento forçado. A janela continua processando eventos, mostra “Stopping...”/“Restarting...” e desabilita os comandos durante a operação. Restart inicia o novo motor somente depois da saída do anterior; Sair aguarda essa limpeza. O encerramento síncrono ficou restrito ao fallback do destrutor.
+
+A inicialização do QProcess também usa os sinais `started`/`errorOccurred`, sem `waitForStarted` na interface. Os testes isolados de ciclo de vida verificam resposta do event loop, repetição de Stop, ordem do reinício e preservação de processos não relacionados.
+
 ## Licença
 
 GPLv2 conforme [LICENSE](LICENSE). Os avisos de copyright dos autores do
